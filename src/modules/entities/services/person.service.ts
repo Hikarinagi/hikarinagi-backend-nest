@@ -1,31 +1,30 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { Person, PersonDocument } from '../schemas/person.schema'
-import { Galgame, GalgameDocument } from '../../galgame/schemas/galgame.schema'
-import { LightNovel, LightNovelDocument } from '../../novel/schemas/light-novel.schema'
-import {
-  SharedEntityHistory,
-  SharedEntityHistoryDocument,
-} from '../schemas/shared-entity-history.schema'
-import { Character, CharacterDocument } from '../schemas/character.schema'
+import { EditHistoryService } from '../../../common/services/edit-history.service'
+import { RequestWithUser } from '../../auth/interfaces/request-with-user.interface'
 
 @Injectable()
 export class PersonService {
   constructor(
     @InjectModel(Person.name) private personModel: Model<PersonDocument>,
-    @InjectModel(Galgame.name) private galgameModel: Model<GalgameDocument>,
-    @InjectModel(LightNovel.name) private lightNovelModel: Model<LightNovelDocument>,
-    @InjectModel(SharedEntityHistory.name)
-    private sharedEntityHistoryModel: Model<SharedEntityHistoryDocument>,
-    @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
+    private readonly editHistoryService: EditHistoryService,
   ) {}
 
-  async findById(id: number, nsfw: boolean = false): Promise<any> {
-    // 首先检查 person 是否存在
+  async findById(id: number, req: RequestWithUser): Promise<any> {
+    if (isNaN(Number(id))) {
+      throw new BadRequestException('id must be a number')
+    }
+
     const personExists = await this.personModel.findOne({ id }).lean()
     if (!personExists) {
-      return null
+      throw new NotFoundException(`Person with id ${id} not found`)
+    }
+
+    let nsfw = false
+    if (req.user && req.user.userSetting) {
+      nsfw = req.user.userSetting.showNSFWContent
     }
 
     const personAggregation = await this.personModel.aggregate([
@@ -272,7 +271,7 @@ export class PersonService {
     ])
 
     if (!personAggregation || personAggregation.length === 0) {
-      return null
+      throw new NotFoundException(`Person with id ${id} not found`)
     }
 
     const personData = personAggregation[0]
@@ -456,69 +455,11 @@ export class PersonService {
       )
     }
 
-    // 获取编辑历史信息
-    const entityHistory = await this.sharedEntityHistoryModel
-      .find({
-        entityType: 'person',
-        entityId: personData._id,
-      })
-      .populate('userId', 'name avatar userId')
-      .sort({ editedAt: -1 })
-      .lean()
+    const { contributors, createdBy, lastEditBy } = await this.editHistoryService.getContributors(
+      'person',
+      personData.id,
+    )
 
-    // 处理 contributors 信息
-    const contributorMap = new Map()
-    entityHistory.forEach(history => {
-      const user = history.userId as any
-      const userId = user._id.toString()
-      if (contributorMap.has(userId)) {
-        contributorMap.get(userId).count++
-      } else {
-        contributorMap.set(userId, {
-          count: 1,
-          userInfo: {
-            userId: user.userId,
-            name: user.name,
-            avatar: user.avatar,
-          },
-        })
-      }
-    })
-
-    const contributors = Array.from(contributorMap.values()).sort((a, b) => b.count - a.count)
-
-    // 获取创建者信息（从 person.creator 字段）
-    const createdByInfo = await this.personModel
-      .findOne({ id })
-      .populate('creator.userId', 'name avatar userId')
-      .select('creator')
-      .lean()
-
-    const createdBy = createdByInfo
-      ? {
-          editedAt: (personExists as any).createdAt || new Date(),
-          userInfo: {
-            name: createdByInfo.creator.name,
-            avatar: (createdByInfo.creator.userId as any)?.avatar || '',
-            userId: (createdByInfo.creator.userId as any)?.userId || '',
-          },
-        }
-      : null
-
-    // 获取最后编辑者信息（最新的历史记录）
-    const lastEditBy =
-      entityHistory.length > 0
-        ? {
-            editedAt: entityHistory[0].editedAt,
-            userInfo: {
-              name: entityHistory[0].userName,
-              avatar: (entityHistory[0].userId as any)?.avatar || '',
-              userId: (entityHistory[0].userId as any)?.userId || '',
-            },
-          }
-        : createdBy
-
-    // 返回最终格式化的数据
     const response = {
       ...personData,
       works: formattedWorks,
@@ -526,11 +467,6 @@ export class PersonService {
       createdBy,
       lastEditBy,
     }
-
-    // 清理不需要返回的字段，保留 _id
-    delete response.createdAt
-    delete response.updatedAt
-    delete response.__v
 
     return response
   }

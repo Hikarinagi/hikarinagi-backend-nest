@@ -4,22 +4,6 @@ import { CharacterToObjectOptions } from '../../../types/mongoose-extensions'
 
 export type CharacterDocument = Character & Document
 
-// @Schema()
-// export class Work {
-//   @Prop({
-//     type: String,
-//     required: true,
-//     enum: ['Galgame', 'LightNovel'],
-//   })
-//   workType: string
-
-//   @Prop({
-//     type: Types.ObjectId,
-//     refPath: 'works.workType',
-//   })
-//   work: Types.ObjectId
-// }
-
 @Schema({ _id: false })
 export class Label {
   @Prop({ type: String, required: true })
@@ -77,9 +61,9 @@ export class Creator {
       if (options.notInclude_id) {
         delete ret._id
       }
+      delete ret.__v
       delete ret.createdAt
       delete ret.updatedAt
-      delete ret.__v
       return ret
     },
   },
@@ -116,9 +100,6 @@ export class Character {
 
   @Prop({ type: String })
   image: string
-
-  // @Prop({ type: [Work] })
-  // works: Work[]
 
   @Prop({
     type: [

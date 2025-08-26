@@ -3,10 +3,14 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { Character, CharacterDocument } from '../schemas/character.schema'
 import { RequestWithUser } from '../../auth/interfaces/request-with-user.interface'
+import { EditHistoryService } from '../../../common/services/edit-history.service'
 
 @Injectable()
 export class CharacterService {
-  constructor(@InjectModel(Character.name) private characterModel: Model<CharacterDocument>) {}
+  constructor(
+    @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
+    private readonly editHistoryService: EditHistoryService,
+  ) {}
 
   async findById(id: number | string, req: RequestWithUser): Promise<Character | null> {
     if (isNaN(Number(id))) {
@@ -389,17 +393,23 @@ export class CharacterService {
         }
       })
       .filter(Boolean)
+
+    const { contributors, createdBy, lastEditBy } = await this.editHistoryService.getContributors(
+      'character',
+      character.id,
+    )
+
     const response = {
       ...character,
       act: formattedAct,
+      contributors,
+      createdBy,
+      lastEditBy,
     }
     delete response.lightNovelWork
     delete response.galgameWork
     delete response.actorData
-    delete response.createdAt
-    delete response.updatedAt
-    delete response.__v
-    delete response.creator
+
     return response
   }
 

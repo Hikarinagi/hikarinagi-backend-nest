@@ -59,6 +59,9 @@ export class Creator {
         }
         return _ret
       }
+      delete ret.__v
+      delete ret.createdAt
+      delete ret.updatedAt
     },
   },
 })
