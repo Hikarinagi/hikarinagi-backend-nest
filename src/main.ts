@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core'
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -8,6 +9,8 @@ import { EnvironmentValidator } from './common/config/validators/env.validator'
 import * as cookieParser from 'cookie-parser'
 import { VersionService } from './common/services/version.service'
 import { NestExpressApplication } from '@nestjs/platform-express'
+import { join } from 'path'
+import * as fs from 'fs'
 
 EnvironmentValidator.validateEnvironment()
 
@@ -18,6 +21,11 @@ async function bootstrap() {
 
   // Cookie 解析器
   app.use(cookieParser())
+
+  // 静态资源（用于 swagger 自定义插件与样式）
+  app.useStaticAssets(join(process.cwd(), 'public'), {
+    prefix: '/api/assets',
+  })
 
   // 全局前缀
   app.setGlobalPrefix('api', {
@@ -40,6 +48,27 @@ async function bootstrap() {
     origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
+  })
+  // Swagger
+  const description = fs.readFileSync(join(__dirname, '../docs/swagger-desc.md'), 'utf8')
+  const config = new DocumentBuilder()
+    .setTitle('Hikarinagi private API')
+    .addServer('/api/v2', 'private API v2')
+    .addBearerAuth()
+    .setVersion(app.get(VersionService).getVersion())
+    .setDescription(description)
+    .build()
+  const documentFactory = () =>
+    SwaggerModule.createDocument(app, config, {
+      ignoreGlobalPrefix: true,
+    })
+  SwaggerModule.setup('/api/docs', app, documentFactory, {
+    swaggerOptions: {
+      showExtensions: true,
+      showCommonExtensions: true,
+    },
+    customJs: '/api/v2/assets/roles-badge.plugin.js',
+    customCssUrl: '/api/v2/assets/roles-badge.plugin.css',
   })
 
   const port = configService.get<number>('port')
