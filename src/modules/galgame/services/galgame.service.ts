@@ -1323,6 +1323,11 @@ export class GalgameService {
             const actorIds = []
             if (characterData.character.act) {
               for (const actData of characterData.character.act) {
+                // 跳过无声优数据
+                if (!actData || !actData.person || !actData.person.name) {
+                  continue
+                }
+
                 let actor
                 const processedActorLabels = (actData.person.labels || []).map(label => ({
                   key: label.key,
@@ -1373,6 +1378,29 @@ export class GalgameService {
               .session(session)
             if (existingCharacter) {
               character = existingCharacter
+              if (
+                Array.isArray(characterData.character.act) &&
+                characterData.character.act.length
+              ) {
+                const actsToAdd = []
+                for (const actItem of characterData.character.act) {
+                  if (!actItem || !actItem.person || !actItem.person._id) continue
+                  actsToAdd.push({
+                    person: actItem.person._id || null,
+                    work: {
+                      workId: newGalgame._id as Types.ObjectId,
+                      workType: 'Galgame' as const,
+                    },
+                  })
+                }
+                if (actsToAdd.length) {
+                  await this.characterModel.findByIdAndUpdate(
+                    existingCharacter._id,
+                    { $push: { act: { $each: actsToAdd } } },
+                    { session },
+                  )
+                }
+              }
             } else {
               const id = await this.counterService.getNextSequence('characterId')
               const actRecords = actorIds.map(actorId => ({

@@ -190,6 +190,10 @@ export class CreateGalgameStaffDto {
 }
 
 export class ActorDto {
+  @IsOptional()
+  @IsString()
+  _id?: string
+
   @IsString()
   name: string
 
