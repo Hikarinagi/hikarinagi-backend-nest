@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt'
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { UserToObjectOptions } from '../../../types/mongoose-extensions'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
 export type UserDocument = User &
   Document & {
@@ -38,6 +39,7 @@ export type UserDocument = User &
   },
 })
 export class User {
+  @ApiProperty({ description: '用户ID（业务自增）' })
   @Prop({
     required: function () {
       return this.isVerified
@@ -46,6 +48,7 @@ export class User {
   })
   userId: string
 
+  @ApiProperty({ description: 'uuid' })
   @Prop({
     required: function () {
       return this.userId
@@ -54,6 +57,7 @@ export class User {
   })
   uuid: string
 
+  @ApiProperty({ description: '用户名' })
   @Prop({
     required: function () {
       return this.name
@@ -62,6 +66,7 @@ export class User {
   })
   name: string
 
+  @ApiProperty({ description: '邮箱' })
   @Prop({ required: true, unique: true })
   email: string
 
@@ -72,36 +77,47 @@ export class User {
   })
   password: string
 
+  @ApiProperty({ description: '是否已验证' })
   @Prop({ default: false })
   isVerified: boolean
 
+  @ApiPropertyOptional({ description: '头像' })
   @Prop()
   avatar?: string
 
+  @ApiPropertyOptional({ description: '简介' })
   @Prop()
   bio?: string
 
+  @ApiPropertyOptional({ description: '签名' })
   @Prop()
   signature?: string
 
+  @ApiPropertyOptional({ description: '封面' })
   @Prop()
   headCover?: string
 
+  @ApiProperty({ description: 'Hikari 积分' })
   @Prop({ default: 0, type: Number })
   hikariPoint: number
 
+  @ApiProperty({ description: '连续签到天数' })
   @Prop({ type: Number, default: 0 })
   checkInStreak: number
 
+  @ApiProperty({ description: '历史最长连续签到天数' })
   @Prop({ type: Number, default: 0 })
   longestCheckInStreak: number
 
+  @ApiPropertyOptional({ type: String, format: 'date-time', description: '上次签到时间' })
   @Prop({ type: Date, default: null })
   lastCheckInAt: Date | null
 
+  @ApiProperty({ description: '用户组' })
   @Prop({ required: true, default: 'user' })
   hikariUserGroup: string
 
+  @ApiPropertyOptional({ description: '刷新令牌列表' })
   @Prop({ default: [] })
   hikariRefreshToken?: {
     token: string
@@ -110,15 +126,19 @@ export class User {
     expiresAt: Date
   }[]
 
+  @ApiPropertyOptional({ type: [String], description: '粉丝ID列表' })
   @Prop({ default: [], ref: 'User' })
   followers?: mongoose.Types.ObjectId[]
 
+  @ApiPropertyOptional({ type: [String], description: '关注ID列表' })
   @Prop({ default: [], ref: 'User' })
   following?: mongoose.Types.ObjectId[]
 
+  @ApiPropertyOptional({ type: String, description: '用户设置ID' })
   @Prop({ ref: 'UserSetting' })
   setting: mongoose.Types.ObjectId
 
+  @ApiProperty({ enum: ['active', 'inactive', 'banned'], default: 'active', description: '状态' })
   @Prop({ default: 'active', enum: ['active', 'inactive', 'banned'] })
   status: string
 }

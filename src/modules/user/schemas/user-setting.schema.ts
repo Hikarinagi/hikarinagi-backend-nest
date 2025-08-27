@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import mongoose from 'mongoose'
 import { Document } from 'mongoose'
 import { UserSettingToObjectOptions } from '../../../types/mongoose-extensions'
+import { ApiProperty } from '@nestjs/swagger'
 
 export type UserSettingDocument = UserSetting & Document
 
@@ -21,9 +22,11 @@ export type UserSettingDocument = UserSetting & Document
   },
 })
 export class UserSetting {
+  @ApiProperty({ description: '用户ID' })
   @Prop({ required: true, ref: 'User' })
   user: mongoose.Types.ObjectId
 
+  @ApiProperty({ description: '是否显示 NSFW 内容', default: false })
   @Prop({ default: false })
   showNSFWContent: boolean
 }
