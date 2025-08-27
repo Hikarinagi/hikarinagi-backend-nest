@@ -71,6 +71,7 @@ async function bootstrap() {
     customCssUrl: '/api/v2/assets/roles-badge.plugin.css',
     customSiteTitle: 'Hikarinagi private API',
     customfavIcon: '/api/v2/assets/favicon.ico',
+    jsonDocumentUrl: '/api/swagger.json',
   })
 
   const port = configService.get<number>('port')

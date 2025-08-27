@@ -1,3 +1,5 @@
+[swagger.json](/api/v2/swagger.json)
+
 OAuth还在开发当中，鉴权请使用hikari_access_token
 
 ```bash
