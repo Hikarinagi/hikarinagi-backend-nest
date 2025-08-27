@@ -1,13 +1,11 @@
 import { Controller, Get } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { VersionService } from '../services/version.service'
+import { ApiExcludeController } from '@nestjs/swagger'
 
+@ApiExcludeController()
 @Controller()
 export class AppController {
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly versionService: VersionService,
-  ) {}
+  constructor(private readonly versionService: VersionService) {}
 
   @Get()
   getAppInfo() {

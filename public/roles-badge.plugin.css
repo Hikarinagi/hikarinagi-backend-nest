@@ -1,0 +1,50 @@
+:root {
+  --hikari-main-color: #39c5bb;
+  --hikari-main-color-blue: #66ccff;
+  --hikari-main-color-green: #00c600;
+  --hikari-main-color-red: #ff6666;
+  --hikari-main-color-yellow: #ffcc00;
+}
+
+.topbar {
+  display: none;
+}
+
+code {
+  color: var(--hikari-main-color) !important;
+}
+
+.role-badges {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+.role-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-weight: 600;
+}
+
+.user {
+  background: var(--hikari-main-color);
+  border-color: var(--hikari-main-color);
+  color: #fff;
+}
+.creator {
+  background: var(--hikari-main-color-blue);
+  border-color: var(--hikari-main-color-blue);
+  color: #fff;
+}
+.admin {
+  background: var(--hikari-main-color-yellow);
+  border-color: var(--hikari-main-color-yellow);
+  color: #fff;
+}
+.superadmin {
+  background: var(--hikari-main-color-red);
+  border-color: var(--hikari-main-color-red);
+  color: #fff;
+}
