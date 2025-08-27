@@ -58,17 +58,19 @@ async function bootstrap() {
     .setVersion(app.get(VersionService).getVersion())
     .setDescription(description)
     .build()
-  const documentFactory = () =>
-    SwaggerModule.createDocument(app, config, {
-      ignoreGlobalPrefix: true,
-    })
-  SwaggerModule.setup('/api/docs', app, documentFactory, {
+  const document = SwaggerModule.createDocument(app, config, {
+    ignoreGlobalPrefix: true,
+  })
+  delete document.components?.schemas?.ObjectId
+  SwaggerModule.setup('/api/docs', app, document, {
     swaggerOptions: {
       showExtensions: true,
       showCommonExtensions: true,
     },
     customJs: '/api/v2/assets/roles-badge.plugin.js',
     customCssUrl: '/api/v2/assets/roles-badge.plugin.css',
+    customSiteTitle: 'Hikarinagi private API',
+    customfavIcon: '/api/v2/assets/favicon.ico',
   })
 
   const port = configService.get<number>('port')
