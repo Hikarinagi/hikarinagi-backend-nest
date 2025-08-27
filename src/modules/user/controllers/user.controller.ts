@@ -37,6 +37,7 @@ import { ApiOkResponseStandard } from '../../../common/swagger/response.decorato
 import { ApiRoles } from '../../../common/swagger/api-roles.decorator'
 import { User } from '../schemas/user.schema'
 import { UserSetting } from '../schemas/user-setting.schema'
+import { RolesGuard } from '../../auth/guards/roles.guard'
 
 @ApiTags('User')
 @ApiExtraModels(User, UserSetting)
@@ -165,7 +166,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(HikariUserGroup.ADMIN)
   @Get(':username')
   @ApiBearerAuth()
