@@ -8,7 +8,7 @@ import {
   IsBoolean,
   IsIn,
 } from 'class-validator'
-import { Type } from 'class-transformer'
+import { Transform, Type } from 'class-transformer'
 
 enum VolumeType {
   MAIN = 'main',
@@ -60,6 +60,7 @@ export class CreateLightNovelVolumeDto {
   @IsNotEmpty()
   cover: string
 
+  @Transform(({ value }) => String(value))
   @IsString()
   @IsOptional()
   volumeNumber?: string
