@@ -119,7 +119,6 @@ export class User {
   @Prop({ required: true, default: HikariUserGroup.USER })
   hikariUserGroup: HikariUserGroup
 
-  @ApiPropertyOptional({ description: '刷新令牌列表' })
   @Prop({ default: [] })
   hikariRefreshToken?: {
     token: string
@@ -128,11 +127,9 @@ export class User {
     expiresAt: Date
   }[]
 
-  @ApiPropertyOptional({ type: [String], description: '粉丝ID列表' })
   @Prop({ default: [], ref: 'User' })
   followers?: mongoose.Types.ObjectId[]
 
-  @ApiPropertyOptional({ type: [String], description: '关注ID列表' })
   @Prop({ default: [], ref: 'User' })
   following?: mongoose.Types.ObjectId[]
 

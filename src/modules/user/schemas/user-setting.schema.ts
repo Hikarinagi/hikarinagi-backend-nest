@@ -22,7 +22,6 @@ export type UserSettingDocument = UserSetting & Document
   },
 })
 export class UserSetting {
-  @ApiProperty({ description: '用户ID' })
   @Prop({ required: true, ref: 'User' })
   user: mongoose.Types.ObjectId
 
