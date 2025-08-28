@@ -60,7 +60,12 @@ export class CreateLightNovelVolumeDto {
   @IsNotEmpty()
   cover: string
 
-  @Transform(({ value }) => String(value))
+  @Transform(({ value }) => {
+    if (value === null || value === undefined) return undefined
+    if (typeof value === 'number') return String(value)
+    if (typeof value === 'string') return value
+    return undefined
+  })
   @IsString()
   @IsOptional()
   volumeNumber?: string
