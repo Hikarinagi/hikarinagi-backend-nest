@@ -9,6 +9,7 @@ import { HikariConfigService } from '../../../common/config/configs'
 import { VerificationService } from '../../email/services/verification.service'
 import { CounterService } from '../../shared/services/counter.service'
 import { SystemMessage } from '../../message/schemas/system-message.schema'
+import { UserCheckInService } from './check-in/user-check-in.service'
 
 describe('UserService', () => {
   let service: UserService
@@ -54,6 +55,10 @@ describe('UserService', () => {
     del: jest.fn(),
   }
 
+  const mockUserCheckInService = {
+    makeUpCheckIn: jest.fn(),
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -89,6 +94,10 @@ describe('UserService', () => {
         {
           provide: getModelToken(SystemMessage.name),
           useValue: mockSystemMessageModel,
+        },
+        {
+          provide: UserCheckInService,
+          useValue: mockUserCheckInService,
         },
       ],
     }).compile()
