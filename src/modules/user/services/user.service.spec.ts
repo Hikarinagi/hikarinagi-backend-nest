@@ -8,6 +8,7 @@ import { UserSetting } from '../schemas/user-setting.schema'
 import { HikariConfigService } from '../../../common/config/configs'
 import { VerificationService } from '../../email/services/verification.service'
 import { CounterService } from '../../shared/services/counter.service'
+import { SystemMessage } from '../../message/schemas/system-message.schema'
 
 describe('UserService', () => {
   let service: UserService
@@ -23,6 +24,10 @@ describe('UserService', () => {
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+  }
+
+  const mockSystemMessageModel = {
+    countDocuments: jest.fn(),
   }
 
   const mockJwtService = {
@@ -80,6 +85,10 @@ describe('UserService', () => {
         {
           provide: CACHE_MANAGER,
           useValue: mockCacheManager,
+        },
+        {
+          provide: getModelToken(SystemMessage.name),
+          useValue: mockSystemMessageModel,
         },
       ],
     }).compile()

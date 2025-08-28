@@ -12,6 +12,7 @@ import { CheckInRecord, CheckInRecordSchema } from './schemas/check-in/check-in-
 import { HikariPointsRecord, HikariPointsRecordSchema } from './schemas/hikari-point-record.schema'
 import { HikariPointService } from './services/hikari-point.service'
 import { UserCheckInController } from './controllers/check-in/user-check-in.controller'
+import { SystemMessage, SystemMessageSchema } from '../message/schemas/system-message.schema'
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserCheckInController } from './controllers/check-in/user-check-in.cont
       { name: UserSetting.name, schema: UserSettingSchema },
       { name: CheckInRecord.name, schema: CheckInRecordSchema },
       { name: HikariPointsRecord.name, schema: HikariPointsRecordSchema },
+      { name: SystemMessage.name, schema: SystemMessageSchema },
     ]),
     EmailModule,
   ],

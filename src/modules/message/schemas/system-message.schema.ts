@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
+import { SystemMessageType } from '../enums/SystemMessageType.enum'
+import { SystemMessageInteractionType } from '../enums/SystemMessageInteractionType.enum'
 
 export type SystemMessageDocument = SystemMessage & Document
 
@@ -24,17 +26,17 @@ export class SystemMessage {
 
   @Prop({
     type: String,
-    enum: ['system', 'notification', 'interaction'],
+    enum: SystemMessageType,
     required: true,
   })
-  type: string
+  type: SystemMessageType
 
   @Prop({
     type: String,
-    enum: ['like', 'comment', 'reply', 'follow', 'mention', 'private-message'],
+    enum: SystemMessageInteractionType,
     default: null,
   })
-  interactionType: string
+  interactionType: SystemMessageInteractionType
 
   @Prop({
     type: Types.ObjectId,

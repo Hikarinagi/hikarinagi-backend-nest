@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, Types } from 'mongoose'
 import * as mongoose from 'mongoose'
 import { JwtService } from '@nestjs/jwt'
 import { User, UserDocument } from '../schemas/user.schema'
@@ -20,17 +20,23 @@ import { RequestWithUser } from '../../auth/interfaces/request-with-user.interfa
 import { UpdateUserEmailDto } from '../dto/user/update-user-email.dto'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
+import { UserStatusDto } from '../dto/response/user-status.dto'
+import { SystemMessage, SystemMessageDocument } from '../../message/schemas/system-message.schema'
+import { UserCheckInService } from './check-in/user-check-in.service'
+import { UserUnreadSummaryDto } from '../dto/response/user-unread-summary.dto'
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(UserSetting.name) private userSettingModel: Model<UserSettingDocument>,
+    @InjectModel(SystemMessage.name) private systemMessageModel: Model<SystemMessageDocument>,
     private jwtService: JwtService,
     private configService: HikariConfigService,
     private verificationService: VerificationService,
     private counterService: CounterService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private userCheckInService: UserCheckInService,
   ) {}
   async sendVerificationEmailForSignUp(verificationForSignupDto: VerificationForSignupDto) {
     if (!this.configService.get('allowRegister')) {
@@ -357,5 +363,46 @@ export class UserService {
     await this.cacheManager.del(key)
     user.email = updateUserEmailDto.email
     await user.save()
+  }
+
+  async getUserStatus(req: RequestWithUser): Promise<UserStatusDto> {
+    const user = await this.userModel.findById(req.user._id)
+    if (!user) {
+      throw new NotFoundException('用户不存在')
+    }
+
+    const isCheckIn = await this.userCheckInService.checkIsCheckIn(user._id as Types.ObjectId)
+    const statusInfo: UserStatusDto = {
+      hikariPoint: user.hikariPoint,
+      isCheckIn,
+      checkInStreak: user.checkInStreak,
+      longestCheckInStreak: user.longestCheckInStreak,
+      hikariUserGroup: user.hikariUserGroup,
+      status: user.status,
+    }
+    return statusInfo
+  }
+
+  async getUnreadMessageSummary(req: RequestWithUser): Promise<UserUnreadSummaryDto> {
+    const user = await this.userModel.findById(req.user._id)
+    if (!user) {
+      throw new NotFoundException('用户不存在')
+    }
+
+    const unreadCount = await this.systemMessageModel.countDocuments({
+      targetUser: user._id,
+      isRead: false,
+    })
+    const unreadMessages = await this.systemMessageModel
+      .find({
+        targetUser: user._id,
+        isRead: false,
+      })
+      .select('id type interactionType title sentAt -_id')
+
+    return {
+      unreadCount,
+      unreadMessages,
+    }
   }
 }

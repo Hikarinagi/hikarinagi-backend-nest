@@ -5,6 +5,8 @@ import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { UserToObjectOptions } from '../../../types/mongoose-extensions'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { UserStatus } from '../enums/UserStatus.enum'
+import { HikariUserGroup } from '../../auth/enums/hikari-user-group.enum'
 
 export type UserDocument = User &
   Document & {
@@ -114,8 +116,8 @@ export class User {
   lastCheckInAt: Date | null
 
   @ApiProperty({ description: '用户组' })
-  @Prop({ required: true, default: 'user' })
-  hikariUserGroup: string
+  @Prop({ required: true, default: HikariUserGroup.USER })
+  hikariUserGroup: HikariUserGroup
 
   @ApiPropertyOptional({ description: '刷新令牌列表' })
   @Prop({ default: [] })
@@ -138,9 +140,9 @@ export class User {
   @Prop({ ref: 'UserSetting' })
   setting: mongoose.Types.ObjectId
 
-  @ApiProperty({ enum: ['active', 'inactive', 'banned'], default: 'active', description: '状态' })
-  @Prop({ default: 'active', enum: ['active', 'inactive', 'banned'] })
-  status: string
+  @ApiProperty({ enum: UserStatus, default: UserStatus.ACTIVE, description: '状态' })
+  @Prop({ default: UserStatus.ACTIVE, enum: UserStatus })
+  status: UserStatus
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

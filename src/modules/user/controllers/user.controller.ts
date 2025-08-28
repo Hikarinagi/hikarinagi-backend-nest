@@ -38,9 +38,11 @@ import { ApiRoles } from '../../../common/swagger/api-roles.decorator'
 import { User } from '../schemas/user.schema'
 import { UserSetting } from '../schemas/user-setting.schema'
 import { RolesGuard } from '../../auth/guards/roles.guard'
+import { UserStatusDto } from '../dto/response/user-status.dto'
+import { UserUnreadSummaryDto } from '../dto/response/user-unread-summary.dto'
 
 @ApiTags('User')
-@ApiExtraModels(User, UserSetting)
+@ApiExtraModels(User, UserSetting, UserStatusDto, UserUnreadSummaryDto)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -163,6 +165,36 @@ export class UserController {
     const user = await this.userService.getProfile(req.user._id)
     return {
       data: user,
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('status')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取用户状态' })
+  @ApiRoles('USER')
+  @ApiOkResponseStandard({ $ref: getSchemaPath(UserStatusDto) })
+  @ApiUnauthorizedResponse({ description: '未认证' })
+  @ApiNotFoundResponse({ description: '用户不存在' })
+  async getUserStatus(@Req() req: RequestWithUser) {
+    const status = await this.userService.getUserStatus(req)
+
+    return {
+      data: status,
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('unread')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取未读消息数量' })
+  @ApiRoles('USER')
+  @ApiOkResponseStandard({ $ref: getSchemaPath(UserUnreadSummaryDto) })
+  @ApiUnauthorizedResponse({ description: '未认证' })
+  async getUnreadMessageCount(@Req() req: RequestWithUser) {
+    const unreadMessageSummary = await this.userService.getUnreadMessageSummary(req)
+    return {
+      data: unreadMessageSummary,
     }
   }
 
