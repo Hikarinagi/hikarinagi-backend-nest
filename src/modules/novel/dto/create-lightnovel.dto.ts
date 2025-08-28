@@ -250,8 +250,9 @@ export class CharacterDto {
 
 export class CreateLightNovelCharacterDto {
   @ValidateNested()
+  @IsOptional()
   @Type(() => CharacterDto)
-  character: CharacterDto
+  character?: CharacterDto
 
   @IsString()
   @IsOptional()
@@ -323,9 +324,9 @@ export class CreateLightNovelDto {
   tags: CreateLightNovelTagDto[]
 
   @IsArray()
-  @ArrayNotEmpty()
   @Type(() => CreateLightNovelCharacterDto)
-  characters: CreateLightNovelCharacterDto[]
+  @IsOptional()
+  characters?: CreateLightNovelCharacterDto[]
 
   @IsBoolean()
   @IsOptional()
