@@ -21,6 +21,7 @@ enum VolumeType {
 enum Status {
   PUBLISHED = 'published',
   DRAFT = 'draft',
+  DELETED = 'deleted',
 }
 
 class PriceDto {
