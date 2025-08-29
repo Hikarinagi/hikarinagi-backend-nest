@@ -177,8 +177,9 @@ export class PersonDto {
 
 export class CreateLightNovelIllustratorDto {
   @ValidateNested()
+  @IsOptional()
   @Type(() => PersonDto)
-  illustrator: PersonDto
+  illustrator?: PersonDto
 
   @IsString()
   @IsOptional()
@@ -314,9 +315,9 @@ export class CreateLightNovelDto {
   publishers: CreateLightNovelPublisherDto[]
 
   @IsArray()
-  @ArrayNotEmpty()
+  @IsOptional()
   @Type(() => CreateLightNovelIllustratorDto)
-  illustrators: CreateLightNovelIllustratorDto[]
+  illustrators?: CreateLightNovelIllustratorDto[]
 
   @IsArray()
   @ArrayNotEmpty()
