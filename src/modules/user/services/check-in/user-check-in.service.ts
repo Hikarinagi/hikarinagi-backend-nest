@@ -183,7 +183,7 @@ export class UserCheckInService {
       if (pre.getTime() + 24 * 60 * 60 * 1000 === now.getTime()) {
         streak++
       } else {
-        streak = 0
+        streak = 1 // 因为补签了一次，再怎么说也会有至少一天的连续签到
       }
       pre = now
     }
