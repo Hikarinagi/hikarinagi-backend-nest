@@ -65,6 +65,7 @@ export class SearchService {
       }
     } else {
       const tokens = this.tokenizationService.tokenizeText(keyword)
+      const safeTokens = this.sanitizeTokens(tokens)
       const conditions = []
 
       // 完整匹配
@@ -86,7 +87,7 @@ export class SearchService {
       )
 
       // tokens > 3 时进行分词匹配
-      tokens.forEach(token => {
+      safeTokens.forEach(token => {
         if (token.length >= 3) {
           conditions.push(
             isPersonOrCharacter
@@ -116,6 +117,14 @@ export class SearchService {
       .replace(/[\u0020-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E]/g, ' ')
       .trim()
     return result.replace(/[-/\\^$*+?.[\]{}|]/g, '\\$&')
+  }
+
+  private sanitizeTokens(tokens: string[]): string[] {
+    const hasMeaningfulChar = /[A-Za-z0-9\u3040-\u30ff\u3400-\u9fff]/
+    return tokens
+      .map(t => this.escapeRegExp(t))
+      .map(t => t.trim())
+      .filter(t => t.length >= 3 && hasMeaningfulChar.test(t))
   }
 
   private getMatchInfo(
@@ -411,6 +420,7 @@ export class SearchService {
   ): Promise<PaginatedResult<any>> {
     let galgameQuery: FilterQuery<GalgameDocument>
     const containsBackslash = keyword.includes('\\')
+    const safeTokens = this.sanitizeTokens(tokens)
 
     if (containsBackslash) {
       galgameQuery = {
@@ -423,7 +433,7 @@ export class SearchService {
           { originTitle: { $elemMatch: { $regex: keyword, $options: 'i' } } },
           { transTitle: { $regex: keyword, $options: 'i' } },
           // 分词匹配
-          ...tokens.map(token => ({
+          ...safeTokens.map(token => ({
             $or: [
               { originTitle: { $elemMatch: { $regex: token, $options: 'i' } } },
               { transTitle: { $regex: token, $options: 'i' } },
@@ -601,6 +611,7 @@ export class SearchService {
   ): Promise<PaginatedResult<any>> {
     let novelQuery: FilterQuery<LightNovelDocument>
     const containsBackslash = keyword.includes('\\')
+    const safeTokens = this.sanitizeTokens(tokens)
 
     if (containsBackslash) {
       novelQuery = {
@@ -612,7 +623,7 @@ export class SearchService {
           { name: { $regex: keyword, $options: 'i' } },
           { name_cn: { $regex: keyword, $options: 'i' } },
           { otherNames: { $regex: keyword, $options: 'i' } },
-          ...tokens.map(token => ({
+          ...safeTokens.map(token => ({
             $or: [
               { name: { $regex: token, $options: 'i' } },
               { name_cn: { $regex: token, $options: 'i' } },
