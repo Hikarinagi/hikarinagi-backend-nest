@@ -11,6 +11,7 @@ import {
   IsDefined,
   ArrayNotEmpty,
   IsNotEmpty,
+  IsUrl,
 } from 'class-validator'
 import { Type } from 'class-transformer'
 
@@ -315,6 +316,19 @@ export class CreateGalgameCharacterDto {
   role: string
 }
 
+export class CreateGalgamePriceDto {
+  @IsString()
+  @IsOptional()
+  version?: string
+
+  @IsNumber()
+  @Type(() => Number)
+  amount: number
+
+  @IsString()
+  currency: string
+}
+
 export class CreateGalgameDto {
   @IsOptional()
   @IsNumber()
@@ -383,6 +397,26 @@ export class CreateGalgameDto {
   @ValidateNested({ each: true })
   @Type(() => CreateGalgameCharacterDto)
   characters: CreateGalgameCharacterDto[]
+
+  @IsOptional()
+  @IsString()
+  advType?: string
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @IsOptional()
+  @Type(() => CreateGalgamePriceDto)
+  price?: CreateGalgamePriceDto[]
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  platform?: string[]
+
+  @IsUrl()
+  @IsString()
+  @IsOptional()
+  homepage?: string
 
   @IsOptional()
   @IsBoolean()

@@ -139,6 +139,21 @@ class CreatorDto {
   userId: string
 }
 
+class PriceDto {
+  @IsString()
+  @IsOptional()
+  version?: string
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsNotEmpty()
+  amount: number
+
+  @IsString()
+  @IsNotEmpty()
+  currency: string
+}
+
 export class UpdateGalgameDto {
   @IsString()
   @IsNotEmpty()
@@ -230,6 +245,26 @@ export class UpdateGalgameDto {
   @Type(() => TagDto)
   @IsNotEmpty()
   tags: TagDto[]
+
+  @IsString()
+  @IsOptional()
+  advType?: string
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PriceDto)
+  @IsOptional()
+  price?: PriceDto[]
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  platform?: string[]
+
+  @IsString()
+  @IsUrl()
+  @IsOptional()
+  homepage?: string
 
   @IsObject()
   @IsOptional()

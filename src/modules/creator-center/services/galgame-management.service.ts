@@ -109,7 +109,7 @@ export class GalgameManagementService {
     const galgame = await this.galgameModel
       .findOne(query)
       .select(
-        'galId vndbId bangumiGameId cover headCover transTitle originTitle producers releaseDate releaseDateTBD releaseDateTBDNote tags originIntro transIntro staffs characters images nsfw downloadInfo locked status createdAt updatedAt _id',
+        'galId vndbId bangumiGameId cover headCover transTitle originTitle producers releaseDate releaseDateTBD releaseDateTBDNote tags originIntro transIntro staffs characters images advType price platform homepage nsfw downloadInfo locked status createdAt updatedAt _id',
       )
       .populate({
         path: 'producers.producer',
