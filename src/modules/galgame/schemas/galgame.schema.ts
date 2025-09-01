@@ -142,6 +142,18 @@ export class GalgameCreator {
   name: string
 }
 
+@Schema({ _id: false })
+export class GalgamePrice {
+  @Prop({ type: String })
+  version: string
+
+  @Prop({ type: Number })
+  amount: number
+
+  @Prop({ type: String })
+  currency: string
+}
+
 @Schema({
   timestamps: true,
   toJSON: {
@@ -288,6 +300,18 @@ export class Galgame {
 
   @Prop({ type: [GalgameCharacter] })
   characters: GalgameCharacter[]
+
+  @Prop({ type: String })
+  advType: string
+
+  @Prop({ type: [GalgamePrice] })
+  price: GalgamePrice[]
+
+  @Prop({ type: [String] })
+  platform: string[]
+
+  @Prop({ type: String })
+  homepage: string
 
   @Prop({ type: [String], default: [] })
   images: string[]

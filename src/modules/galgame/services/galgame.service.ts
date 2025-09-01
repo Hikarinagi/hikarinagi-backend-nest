@@ -1050,6 +1050,53 @@ export class GalgameService {
       .filter(result => result.status === 'fulfilled' && result.value)
       .map((result: any) => result.value)
 
+    const priceRaw = subjectInfo.data.infobox.find(item => item.key === '售价')
+    const priceInfo = Array.isArray(priceRaw.value)
+      ? (
+          subjectInfo.data.infobox as Array<{
+            key: string
+            value: Array<{ k: string; v: string }>
+          }>
+        )
+          .find(item => item.key === '售价')
+          .value.map(item => {
+            const version = item.k
+            const amount =
+              Number(
+                item.v.match(/[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/)?.[0]?.replace(/,/g, '') ||
+                  null,
+              ) || null
+            const currency = amount <= 30 ? 'USD' : amount <= 1000 ? 'CNY' : 'JPY'
+            return {
+              version,
+              amount,
+              currency,
+            }
+          })
+      : (() => {
+          const version = priceRaw.value.match(/[（(]\s*([^（）()]+?)\s*[）)]/)?.[1]?.trim() || ''
+          const amount = Number(
+            priceRaw.value
+              .match(/[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/)?.[0]
+              ?.replace(/,/g, '') || null,
+          )
+          const currency = amount <= 30 ? 'USD' : amount <= 1000 ? 'CNY' : 'JPY'
+          return [
+            {
+              version,
+              amount,
+              currency,
+            },
+          ]
+        })()
+
+    const platformRaw = (subjectInfo.data.infobox as Array<{ key: string; value: any }>).find(
+      item => item.key === '平台',
+    )
+    const platformInfo = Array.isArray(platformRaw.value)
+      ? (platformRaw.value.map(item => item.v) as string[])
+      : ([platformRaw.value] as string[])
+
     const transformedData = {
       bangumiGameId: subjectInfo.data.id,
       cover: subjectInfo.data.images?.large || '',
@@ -1087,6 +1134,16 @@ export class GalgameService {
       transIntro: '',
       staffs: filteredStaffs,
       characters: validCharacters,
+      homepage:
+        (subjectInfo.data.infobox as Array<{ key: string; value: string }>).find(item => {
+          return item.key === 'website'
+        })?.value || '',
+      price: priceInfo,
+      platform: platformInfo,
+      advType:
+        (subjectInfo.data.infobox as Array<{ key: string; value: string }>).find(
+          item => item.key === '游戏类型',
+        )?.value || '',
     }
 
     return transformedData
@@ -1294,6 +1351,10 @@ export class GalgameService {
         producers: producerIds,
         staffs: staffIds,
         characters: [], // 暂时为空
+        homepage: galgame.homepage,
+        price: galgame.price,
+        platform: galgame.platform,
+        advType: galgame.advType,
         createdAt: new Date(),
         status:
           req.user.hikariUserGroup === 'admin' || req.user.hikariUserGroup === 'superAdmin'

@@ -163,6 +163,10 @@ export class UpdateRequestMergeService {
       originIntro: params.mergeData.originIntro,
       transIntro: params.mergeData.transIntro,
       images: params.mergeData.images,
+      homepage: params.mergeData.homepage,
+      price: params.mergeData.price,
+      platform: params.mergeData.platform,
+      advType: params.mergeData.advType,
       nsfw: params.mergeData.nsfw,
       status: params.mergeData.status,
     }
