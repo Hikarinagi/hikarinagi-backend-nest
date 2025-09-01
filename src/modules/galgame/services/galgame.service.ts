@@ -1073,29 +1073,35 @@ export class GalgameService {
               currency,
             }
           })
-      : (() => {
-          const version = priceRaw?.value.match(/[（(]\s*([^（）()]+?)\s*[）)]/)?.[1]?.trim() || ''
-          const amount = Number(
-            priceRaw?.value
-              .match(/[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/)?.[0]
-              ?.replace(/,/g, '') || null,
-          )
-          const currency = amount <= 30 ? 'USD' : amount <= 1000 ? 'CNY' : 'JPY'
-          return [
-            {
-              version,
-              amount,
-              currency,
-            },
-          ]
-        })()
+      : priceRaw?.value
+        ? (() => {
+            const version =
+              priceRaw?.value.match(/[（(]\s*([^（）()]+?)\s*[）)]/)?.[1]?.trim() || ''
+            const amount = Number(
+              priceRaw?.value
+                .match(/[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/)?.[0]
+                ?.replace(/,/g, '') || null,
+            )
+            const currency = amount <= 30 ? 'USD' : amount <= 1000 ? 'CNY' : 'JPY'
+            return [
+              {
+                version,
+                amount,
+                currency,
+              },
+            ]
+          })()
+        : []
 
-    const platformRaw = (subjectInfo.data.infobox as Array<{ key: string; value: any }>).find(
-      item => item.key === '平台',
-    )
-    const platformInfo = Array.isArray(platformRaw.value)
-      ? (platformRaw.value.map(item => item.v) as string[])
-      : ([platformRaw.value] as string[])
+    const platformRaw =
+      (subjectInfo.data.infobox as Array<{ key: string; value: any }>).find(
+        item => item.key === '平台',
+      ) || null
+    const platformInfo = Array.isArray(platformRaw?.value)
+      ? platformRaw?.value.map(item => item.v) || []
+      : platformRaw?.value
+        ? [platformRaw.value]
+        : []
 
     const transformedData = {
       bangumiGameId: subjectInfo.data.id,
