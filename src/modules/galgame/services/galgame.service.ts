@@ -1060,7 +1060,8 @@ export class GalgameService {
         )
           .find(item => item.key === '售价')
           .value.map(item => {
-            const version = item.k
+            const version =
+              item.k || item.v.match(/[（(]\s*([^（）()]+?)\s*[）)]/)?.[1]?.trim() || ''
             const amount =
               Number(
                 item.v.match(/[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/)?.[0]?.replace(/,/g, '') ||
