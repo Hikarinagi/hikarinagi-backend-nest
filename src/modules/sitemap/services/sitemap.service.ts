@@ -15,6 +15,7 @@ import { Article, ArticleDocument } from '../../content/schemas/article.schema'
 import { SitemapType } from '../enums/SitemapType.enum'
 import { SiteItem } from '../types/SiteItem'
 import { IndexItem } from '../types/IndexItem'
+import { DocItem } from '../types/DocItem'
 import { SitemapOptionsDto } from '../dto/SitemapOptions.dto'
 import { HikariConfigService } from '../../../common/config/configs'
 import { ApiExcludeController } from '@nestjs/swagger'
@@ -46,7 +47,7 @@ export class SitemapService {
     const queryCommon = { status: 'published' }
     const skip = (page - 1) * pageSize
 
-    const buildUrl = (t: SitemapType, item: any): string => {
+    const buildUrl = (t: SitemapType, item: DocItem): string => {
       if (t === SitemapType.Galgame) return `${base}/galgame/${item.galId}`
       if (t === SitemapType.LightNovel) return `${base}/lightnovel/${item.novelId}`
       if (t === SitemapType.LightNovelVolume) return `${base}/lightnovel/volumes/${item.volumeId}`
@@ -58,102 +59,103 @@ export class SitemapService {
       return base
     }
 
-    let items: Array<{ url: string; lastmod?: string }> = []
+    let items: SiteItem[] = []
+    let docs: DocItem[] = []
     if (type === SitemapType.Galgame) {
-      const docs = await this.galgameModel
+      docs = (await this.galgameModel
         .find(queryCommon)
         .select('galId updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.Galgame, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.LightNovel) {
-      const docs = await this.lightNovelModel
+      docs = (await this.lightNovelModel
         .find(queryCommon)
         .select('novelId updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.LightNovel, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.LightNovelVolume) {
-      const docs = await this.lightNovelVolumeModel
+      docs = (await this.lightNovelVolumeModel
         .find(queryCommon)
         .select('volumeId updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.LightNovelVolume, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.Person) {
-      const docs = await this.personModel
+      docs = (await this.personModel
         .find(queryCommon)
         .select('id updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.Person, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.Character) {
-      const docs = await this.characterModel
+      docs = (await this.characterModel
         .find(queryCommon)
         .select('id updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.Character, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.Producer) {
-      const docs = await this.producerModel
+      docs = (await this.producerModel
         .find(queryCommon)
         .select('id updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.Producer, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.Post) {
-      const docs = await this.postModel
+      docs = (await this.postModel
         .find({ status: 'published', visible: 'public' })
         .select('id updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.Post, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     } else if (type === SitemapType.Article) {
-      const docs = await this.articleModel
+      docs = (await this.articleModel
         .find({ status: 'published', visible: 'public' })
         .select('id slug updatedAt createdAt')
         .sort({ updatedAt: -1, _id: -1 })
         .skip(skip)
         .limit(pageSize)
-        .lean()
+        .lean()) as unknown as DocItem[]
       items = docs.map(d => ({
         url: buildUrl(SitemapType.Article, d),
-        lastmod: (d as any).updatedAt?.toISOString?.() || (d as any).createdAt?.toISOString?.(),
+        lastmod: d.updatedAt?.toISOString?.() || d.createdAt?.toISOString?.(),
       }))
     }
 

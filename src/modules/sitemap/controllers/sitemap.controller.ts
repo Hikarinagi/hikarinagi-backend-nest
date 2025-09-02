@@ -37,7 +37,6 @@ export class SitemapController {
     @Param('page', ParseIntPipe) page: number,
     @Res() res: Response,
   ): Promise<void> {
-    console.log('generateSectionSitemap', type, page)
     if (
       ![
         SitemapType.Galgame,
