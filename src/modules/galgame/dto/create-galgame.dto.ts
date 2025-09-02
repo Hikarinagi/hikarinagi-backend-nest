@@ -413,6 +413,7 @@ export class CreateGalgameDto {
   @IsOptional()
   platform?: string[]
 
+  @ValidateIf(o => o.homepage !== '' && o.homepage !== undefined && o.homepage !== null)
   @IsUrl()
   @IsString()
   @IsOptional()

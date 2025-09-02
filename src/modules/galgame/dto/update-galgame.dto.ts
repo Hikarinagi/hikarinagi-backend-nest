@@ -1,22 +1,14 @@
-import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  IsOptional,
-  ValidateBy,
-  Min,
-} from 'class-validator'
+import { IsArray, IsNumber, IsOptional, ValidateBy, Min, IsUrl, ValidateIf } from 'class-validator'
 
 export class UpdateGalgameDto {}
 
 export class UpdateGalgameCoverAndImagesDto {
-  @IsString({ message: 'cover must be a string' })
-  @IsNotEmpty({ message: 'cover is required' })
+  @ValidateIf(o => o.cover !== '' && o.cover !== undefined && o.cover !== null)
+  @IsUrl()
   cover: string
 
-  @IsArray({ message: 'images must be an array' })
-  @IsString({ each: true, message: 'each image must be a string' })
+  @IsArray()
+  @IsUrl({}, { each: true })
   images: string[]
 
   @IsNumber({}, { message: 'headCover must be a number' })

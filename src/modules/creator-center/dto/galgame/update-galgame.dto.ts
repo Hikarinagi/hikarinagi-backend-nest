@@ -11,6 +11,7 @@ import {
   ValidateNested,
   IsNumber,
   IsObject,
+  ValidateIf,
 } from 'class-validator'
 import { Types } from 'mongoose'
 import { DownloadInfo } from '../../../galgame/schemas/galgame.schema'
@@ -261,7 +262,7 @@ export class UpdateGalgameDto {
   @IsOptional()
   platform?: string[]
 
-  @IsString()
+  @ValidateIf(o => o.homepage !== '' && o.homepage !== undefined && o.homepage !== null)
   @IsUrl()
   @IsOptional()
   homepage?: string
