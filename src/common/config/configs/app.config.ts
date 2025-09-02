@@ -1,5 +1,6 @@
 export default () => ({
   port: parseInt(process.env.PORT || '3005', 10),
+  siteBaseUrl: process.env.SITE_BASE_URL || 'https://www.hikarinagi.org',
   throttle: {
     ttl: parseInt(process.env.THROTTLE_TTL || '60', 10),
     limit: parseInt(process.env.THROTTLE_LIMIT || '10', 10),
