@@ -27,6 +27,7 @@ import { CreatorCenterModule } from './modules/creator-center/creator-center.mod
 import { VersionService } from './common/services/version.service'
 import { SearchModule } from './modules/search/search.module'
 import { SiteModule } from './modules/site/site.module'
+import { SitemapModule } from './modules/sitemap/sitemap.module'
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { SiteModule } from './modules/site/site.module'
     CreatorCenterModule,
     SearchModule,
     SiteModule,
+    SitemapModule,
   ],
   controllers: [],
   providers: [

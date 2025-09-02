@@ -20,6 +20,13 @@ export class EnvironmentValidator {
       description: '环境模式',
       defaultValue: 'development',
     },
+    {
+      key: 'SITE_BASE_URL',
+      required: false,
+      type: 'string',
+      description: '网站域名',
+      defaultValue: 'https://www.hikarinagi.org',
+    },
     { key: 'PORT', required: false, type: 'number', description: '应用端口', defaultValue: 3005 },
 
     // database
