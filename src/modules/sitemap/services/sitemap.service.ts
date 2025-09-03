@@ -18,10 +18,8 @@ import { IndexItem } from '../types/IndexItem'
 import { DocItem } from '../types/DocItem'
 import { SitemapOptionsDto } from '../dto/SitemapOptions.dto'
 import { HikariConfigService } from '../../../common/config/configs'
-import { ApiExcludeController } from '@nestjs/swagger'
 
 @Injectable()
-@ApiExcludeController()
 export class SitemapService {
   constructor(
     @InjectModel(Galgame.name) private readonly galgameModel: Model<GalgameDocument>,

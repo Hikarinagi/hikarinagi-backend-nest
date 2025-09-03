@@ -4,8 +4,10 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { Response } from 'express'
 import { SitemapType } from '../enums/SitemapType.enum'
+import { ApiExcludeController } from '@nestjs/swagger'
 
 @Controller()
+@ApiExcludeController()
 export class SitemapController {
   constructor(
     private readonly sitemapService: SitemapService,
