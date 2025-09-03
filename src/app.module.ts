@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from '@nestjs/cache-manager'
 import { ThrottlerGuard, ThrottlerModule, ThrottlerModuleOptions } from '@nestjs/throttler'
+import { ScheduleModule } from '@nestjs/schedule'
 import { redisStore } from 'cache-manager-redis-yet'
 import { KeyvAdapter } from 'cache-manager'
 import config from './common/config/configs'
@@ -28,6 +29,7 @@ import { VersionService } from './common/services/version.service'
 import { SearchModule } from './modules/search/search.module'
 import { SiteModule } from './modules/site/site.module'
 import { SitemapModule } from './modules/sitemap/sitemap.module'
+import { IndexNowModule } from './modules/indexnow/index-now.module'
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { SitemapModule } from './modules/sitemap/sitemap.module'
       isGlobal: true,
       load: config,
     }),
+    ScheduleModule.forRoot(),
     HikariConfigModule,
     JwtModule.registerAsync({
       global: true,
@@ -118,6 +121,7 @@ import { SitemapModule } from './modules/sitemap/sitemap.module'
     SearchModule,
     SiteModule,
     SitemapModule,
+    IndexNowModule,
   ],
   controllers: [],
   providers: [

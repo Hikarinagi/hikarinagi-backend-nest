@@ -1,6 +1,10 @@
 export default () => ({
   port: parseInt(process.env.PORT || '3005', 10),
   siteBaseUrl: process.env.SITE_BASE_URL || 'https://www.hikarinagi.org',
+  enableIndexNow: process.env.ENABLE_INDEX_NOW === 'true' || true,
+  indexNowApiKey: process.env.INDEX_NOW_API_KEY,
+  indexNowSchedule: process.env.INDEX_NOW_SCHEDULE || '0 0 0/1 * * ?',
+
   throttle: {
     ttl: parseInt(process.env.THROTTLE_TTL || '60', 10),
     limit: parseInt(process.env.THROTTLE_LIMIT || '10', 10),

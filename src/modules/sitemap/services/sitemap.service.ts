@@ -40,6 +40,21 @@ export class SitemapService {
     return this.configService.get('siteBaseUrl')
   }
 
+  async getLatestUrls(count: number): Promise<string[]> {
+    const urls: string[] = []
+    const promise: Promise<SiteItem[]>[] = []
+    for (const type of Object.values(SitemapType)) {
+      promise.push(this.getBaseInfos(type, { page: 1, pageSize: count }))
+    }
+    const items: SiteItem[][] = await Promise.all(promise)
+    items.forEach(item => {
+      item.forEach(i => {
+        urls.push(i.url)
+      })
+    })
+    return urls
+  }
+
   async getBaseInfos(type: SitemapType, options: SitemapOptionsDto = {}): Promise<SiteItem[]> {
     const page = Math.max(1, options.page || 1)
     const pageSize = Math.min(Math.max(1, options.pageSize || 5000), 50000)

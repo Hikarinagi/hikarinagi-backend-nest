@@ -7,11 +7,12 @@ export class UpdateGalgameCoverAndImagesDto {
   @IsUrl()
   cover: string
 
+  @IsOptional()
   @IsArray()
   @IsUrl({}, { each: true })
   images: string[]
 
-  @IsNumber({}, { message: 'headCover must be a number' })
+  @IsNumber()
   @Min(0, { message: 'headCover must be greater than or equal to 0' })
   @ValidateBy({
     name: 'isValidHeadCover',

@@ -23,6 +23,8 @@ export interface DatabaseConfig {
 export interface AppConfig {
   port: number
   siteBaseUrl: string
+  enableIndexNow: boolean
+  indexNowApiKey: string
   throttle: {
     ttl: number
     limit: number
@@ -86,6 +88,8 @@ export type ConfigPath =
   // 应用配置
   | 'port'
   | 'siteBaseUrl'
+  | 'enableIndexNow'
+  | 'indexNowApiKey'
   | 'throttle.ttl'
   | 'throttle.limit'
   // 邮件配置
@@ -140,48 +144,52 @@ export type ConfigPathValue<T extends ConfigPath> = T extends 'jwt.secret'
                       ? number
                       : T extends 'siteBaseUrl'
                         ? string
-                        : T extends 'throttle.ttl'
-                          ? number
-                          : T extends 'throttle.limit'
-                            ? number
-                            : T extends 'email.emailProvider'
-                              ? 'elastic' | 'postal' | undefined
-                              : T extends 'email.emailApiKey'
-                                ? string | undefined
-                                : T extends 'email.emailEndPoint'
-                                  ? string | undefined
-                                  : T extends 'email.emailSenderAddress'
+                        : T extends 'enableIndexNow'
+                          ? boolean
+                          : T extends 'indexNowApiKey'
+                            ? string
+                            : T extends 'throttle.ttl'
+                              ? number
+                              : T extends 'throttle.limit'
+                                ? number
+                                : T extends 'email.emailProvider'
+                                  ? 'elastic' | 'postal' | undefined
+                                  : T extends 'email.emailApiKey'
                                     ? string | undefined
-                                    : T extends 'email.emailSenderName'
+                                    : T extends 'email.emailEndPoint'
                                       ? string | undefined
-                                      : T extends 'allowRegister'
-                                        ? boolean
-                                        : T extends 'reader.readerSignatureSecret'
+                                      : T extends 'email.emailSenderAddress'
+                                        ? string | undefined
+                                        : T extends 'email.emailSenderName'
                                           ? string | undefined
-                                          : T extends 'galDownload.downloadSignatureSecret'
-                                            ? string | undefined
-                                            : T extends 'r2.r2Endpoint'
+                                          : T extends 'allowRegister'
+                                            ? boolean
+                                            : T extends 'reader.readerSignatureSecret'
                                               ? string | undefined
-                                              : T extends 'r2.novel.r2LightNovelAccessKey'
+                                              : T extends 'galDownload.downloadSignatureSecret'
                                                 ? string | undefined
-                                                : T extends 'r2.novel.r2LightNovelSecretKey'
+                                                : T extends 'r2.r2Endpoint'
                                                   ? string | undefined
-                                                  : T extends 'r2.novel.r2LightNovelBucket'
+                                                  : T extends 'r2.novel.r2LightNovelAccessKey'
                                                     ? string | undefined
-                                                    : T extends 'r2.images.r2ImageAccessKey'
+                                                    : T extends 'r2.novel.r2LightNovelSecretKey'
                                                       ? string | undefined
-                                                      : T extends 'r2.images.r2ImageSecretKey'
+                                                      : T extends 'r2.novel.r2LightNovelBucket'
                                                         ? string | undefined
-                                                        : T extends 'r2.images.r2ImageBucket'
+                                                        : T extends 'r2.images.r2ImageAccessKey'
                                                           ? string | undefined
-                                                          : T extends 'bangumi.clientId'
+                                                          : T extends 'r2.images.r2ImageSecretKey'
                                                             ? string | undefined
-                                                            : T extends 'bangumi.clientSecret'
+                                                            : T extends 'r2.images.r2ImageBucket'
                                                               ? string | undefined
-                                                              : T extends 'version.major'
-                                                                ? number
-                                                                : T extends 'version.minor'
-                                                                  ? number
-                                                                  : T extends 'version.suffix'
-                                                                    ? string
-                                                                    : never
+                                                              : T extends 'bangumi.clientId'
+                                                                ? string | undefined
+                                                                : T extends 'bangumi.clientSecret'
+                                                                  ? string | undefined
+                                                                  : T extends 'version.major'
+                                                                    ? number
+                                                                    : T extends 'version.minor'
+                                                                      ? number
+                                                                      : T extends 'version.suffix'
+                                                                        ? string
+                                                                        : never

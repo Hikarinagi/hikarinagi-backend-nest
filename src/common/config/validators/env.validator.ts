@@ -27,6 +27,7 @@ export class EnvironmentValidator {
       description: '网站域名',
       defaultValue: 'https://www.hikarinagi.org',
     },
+    { key: 'INDEX_NOW_API_KEY', required: false, type: 'string', description: 'IndexNow API 密钥' },
     { key: 'PORT', required: false, type: 'number', description: '应用端口', defaultValue: 3005 },
 
     // database

@@ -29,5 +29,6 @@ import { Article, ArticleSchema } from '../content/schemas/article.schema'
   ],
   controllers: [SitemapController],
   providers: [SitemapService],
+  exports: [SitemapService],
 })
 export class SitemapModule {}
