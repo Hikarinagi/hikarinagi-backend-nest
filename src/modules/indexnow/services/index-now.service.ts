@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { HikariConfigService } from '../../../common/config/configs'
 import { SitemapService } from '../../sitemap/services/sitemap.service'
 import { HttpService } from '@nestjs/axios'
@@ -14,7 +14,7 @@ import { writeFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 
 @Injectable()
-export class IndexNowService implements OnModuleInit {
+export class IndexNowService {
   private readonly logger = new Logger(IndexNowService.name)
   constructor(
     private readonly configService: HikariConfigService,
@@ -22,9 +22,8 @@ export class IndexNowService implements OnModuleInit {
     private readonly httpService: HttpService,
   ) {}
   async onModuleInit() {
-    // await this.process()
+    await this.process()
   }
-
   async process() {
     const urls = Array.from(new Set(await this.getUrls()))
     if (!urls.length) {
