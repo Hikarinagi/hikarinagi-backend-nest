@@ -12,6 +12,7 @@ import {
   IsNumber,
   IsObject,
   ValidateIf,
+  IsDefined,
 } from 'class-validator'
 import { Types } from 'mongoose'
 import { DownloadInfo } from '../../../galgame/schemas/galgame.schema'
@@ -199,13 +200,14 @@ export class UpdateGalgameDto {
   @IsOptional()
   transIntro?: string
 
-  @IsBoolean()
-  @IsNotEmpty()
-  releaseDateTBD: boolean
-
   @IsString()
-  @IsNotEmpty()
-  releaseDate: string
+  @ValidateIf(o => o.releaseDateTBD !== true)
+  @IsDefined()
+  releaseDate?: string
+
+  @IsOptional()
+  @IsBoolean()
+  releaseDateTBD?: boolean
 
   @IsString()
   @IsOptional()
