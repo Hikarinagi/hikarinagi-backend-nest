@@ -124,7 +124,7 @@ export class SearchService {
     return tokens
       .map(t => this.escapeRegExp(t))
       .map(t => t.trim())
-      .filter(t => t.length >= 3 && hasMeaningfulChar.test(t))
+      .filter(t => t.length >= 2 && hasMeaningfulChar.test(t))
   }
 
   private getMatchInfo(
