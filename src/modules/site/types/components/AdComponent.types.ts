@@ -11,5 +11,6 @@ export interface AdComponent extends UIComponent {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface AdSettings {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface AdItem extends BaseDisplayItem {}
+export interface AdItem extends BaseDisplayItem {
+  device?: 'desktop' | 'mobile' | 'all'
+}
