@@ -28,6 +28,13 @@ export class EnvironmentValidator {
       defaultValue: 'https://www.hikarinagi.org',
     },
     { key: 'INDEX_NOW_API_KEY', required: false, type: 'string', description: 'IndexNow API 密钥' },
+    {
+      key: 'ENABLE_INDEX_NOW',
+      required: false,
+      type: 'boolean',
+      description: '是否启用 IndexNow',
+      defaultValue: true,
+    },
     { key: 'PORT', required: false, type: 'number', description: '应用端口', defaultValue: 3005 },
 
     // database

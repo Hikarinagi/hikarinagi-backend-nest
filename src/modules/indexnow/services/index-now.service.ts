@@ -21,9 +21,6 @@ export class IndexNowService {
     private readonly sitemapService: SitemapService,
     private readonly httpService: HttpService,
   ) {}
-  async onModuleInit() {
-    await this.process()
-  }
   async process() {
     const urls = Array.from(new Set(await this.getUrls()))
     if (!urls.length) {
