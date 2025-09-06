@@ -1,6 +1,7 @@
 import { Prop, Schema } from '@nestjs/mongoose'
 import { BaseDisplayItem } from './base-display-item.schema'
 import { Document } from 'mongoose'
+import { DeviceType } from '../../enums/DeviceType.enum'
 
 export type AdvertisementItemDocument = AdvertisementItem & Document
 export type AdvertisementSettingsDocument = AdvertisementSettings & Document
@@ -10,8 +11,8 @@ export class ImageItem {
   @Prop({ type: String, required: true })
   url: string
 
-  @Prop({ type: String, enum: ['desktop', 'mobile', 'all'] })
-  device?: 'desktop' | 'mobile' | 'all'
+  @Prop({ type: String, enum: Object.values(DeviceType) })
+  device?: DeviceType
 }
 
 @Schema({ _id: false })

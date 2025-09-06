@@ -1,6 +1,7 @@
 import { UIComponent } from '../UIComponent.types'
 import { BaseDisplayItem } from '../BaseDisplayItem.types'
 import { UIComponentType } from '../../enums/UIComponentType.enum'
+import { DeviceType } from '../../enums/DeviceType.enum'
 
 export interface AdComponent extends UIComponent {
   type: UIComponentType.ADVERTISEMENT
@@ -12,5 +13,5 @@ export interface AdComponent extends UIComponent {
 export interface AdSettings {}
 
 export interface AdItem extends BaseDisplayItem {
-  device?: 'desktop' | 'mobile' | 'all'
+  device?: DeviceType
 }
