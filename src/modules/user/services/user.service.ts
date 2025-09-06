@@ -405,4 +405,10 @@ export class UserService {
       unreadMessages,
     }
   }
+
+  async deleteUnverifiedUser(): Promise<number> {
+    const count = await this.userModel.countDocuments({ isVerified: false, name: null })
+    await this.userModel.deleteMany({ isVerified: false, name: null })
+    return count
+  }
 }

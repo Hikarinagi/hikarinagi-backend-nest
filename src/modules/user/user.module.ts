@@ -13,6 +13,7 @@ import { HikariPointsRecord, HikariPointsRecordSchema } from './schemas/hikari-p
 import { HikariPointService } from './services/hikari-point.service'
 import { UserCheckInController } from './controllers/check-in/user-check-in.controller'
 import { SystemMessage, SystemMessageSchema } from '../message/schemas/system-message.schema'
+import { UserTask } from './tasks/user.task'
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { SystemMessage, SystemMessageSchema } from '../message/schemas/system-me
     EmailModule,
   ],
   controllers: [UserController, UserSearchController, UserCheckInController],
-  providers: [UserService, UserSearchService, UserCheckInService, HikariPointService],
+  providers: [UserService, UserSearchService, UserCheckInService, HikariPointService, UserTask],
   exports: [UserService],
 })
 export class UserModule {}
