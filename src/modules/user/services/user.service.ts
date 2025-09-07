@@ -24,6 +24,7 @@ import { UserStatusDto } from '../dto/response/user-status.dto'
 import { SystemMessage, SystemMessageDocument } from '../../message/schemas/system-message.schema'
 import { UserCheckInService } from './check-in/user-check-in.service'
 import { UserUnreadSummaryDto } from '../dto/response/user-unread-summary.dto'
+import { PaginatedResult } from '../../../common/interfaces/paginated-result.interface'
 
 @Injectable()
 export class UserService {
@@ -410,5 +411,70 @@ export class UserService {
     const count = await this.userModel.countDocuments({ isVerified: false, name: null })
     await this.userModel.deleteMany({ isVerified: false, name: null })
     return count
+  }
+
+  async getFollowingList(
+    userId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResult<UserDocument>> {
+    const user = await this.userModel.findOne({ userId })
+    if (!user) {
+      throw new NotFoundException('user not found')
+    }
+
+    const skip = (page - 1) * limit
+    const totalItems = user.following.length
+    const followingIds = user.following.slice(skip, skip + limit)
+
+    const items = await this.userModel
+      .find({ _id: { $in: followingIds } })
+      .select('userId name avatar bio signature -_id')
+      .exec()
+
+    const totalPages = Math.ceil(totalItems / limit)
+
+    return {
+      items,
+      meta: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: limit,
+        totalPages,
+        currentPage: page,
+      },
+    }
+  }
+
+  async getFollowerList(
+    userId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResult<UserDocument>> {
+    const user = await this.userModel.findOne({ userId })
+    if (!user) {
+      throw new NotFoundException('user not found')
+    }
+
+    const skip = (page - 1) * limit
+    const totalItems = user.followers.length
+    const followerIds = user.followers.slice(skip, skip + limit)
+    const items = await this.userModel
+      .find({ _id: { $in: followerIds } })
+      .select('userId name avatar bio signature -_id')
+      .exec()
+
+    const totalPages = Math.ceil(totalItems / limit)
+
+    return {
+      items,
+      meta: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: limit,
+        totalPages,
+        currentPage: page,
+      },
+    }
   }
 }
