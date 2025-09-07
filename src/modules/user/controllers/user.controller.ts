@@ -10,6 +10,9 @@ import {
   HttpStatus,
   HttpCode,
   Req,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { UserService } from '../services/user.service'
 import { VerificationForSignupDto, CreateUserDto, LoginUserDto, RefreshTokenDto } from '../dto/user'
@@ -32,8 +35,13 @@ import {
   ApiExtraModels,
   getSchemaPath,
   ApiHeader,
+  ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger'
-import { ApiOkResponseStandard } from '../../../common/swagger/response.decorators'
+import {
+  ApiOkResponseStandard,
+  ApiOkResponsePaginated,
+} from '../../../common/swagger/response.decorators'
 import { ApiRoles } from '../../../common/swagger/api-roles.decorator'
 import { User } from '../schemas/user.schema'
 import { UserSetting } from '../schemas/user-setting.schema'
@@ -248,6 +256,82 @@ export class UserController {
     await this.userService.updateEmail(req, updateUserEmailDto)
     return {
       message: 'email updated',
+    }
+  }
+
+  @Get(':userId/following')
+  @ApiOperation({
+    summary: '获取用户关注列表',
+    description: '获取指定用户的关注列表，支持分页查询。此接口不需要认证。',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '用户ID',
+    example: '123456',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '页码，从1开始',
+    required: false,
+    example: 1,
+    type: 'number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: '每页数量',
+    required: false,
+    example: 10,
+    type: 'number',
+  })
+  @ApiOkResponsePaginated(User, { description: 'get following list' })
+  @ApiNotFoundResponse({ description: 'user not found' })
+  async getFollowingList(
+    @Param('userId') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    const followingList = await this.userService.getFollowingList(userId, page, limit)
+    return {
+      data: followingList,
+    }
+  }
+
+  @Get(':userId/followers')
+  @ApiOperation({
+    summary: '获取用户粉丝列表',
+    description: '获取指定用户的粉丝列表，支持分页查询。此接口不需要认证。',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '用户ID',
+    example: '123456',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '页码，从1开始',
+    required: false,
+    example: 1,
+    type: 'number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: '每页数量',
+    required: false,
+    example: 10,
+    type: 'number',
+  })
+  @ApiOkResponsePaginated(User, { description: 'get follower list' })
+  @ApiNotFoundResponse({ description: 'user not found' })
+  async getFollowerList(
+    @Param('userId') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    const followerList = await this.userService.getFollowerList(userId, page, limit)
+    return {
+      data: followerList,
     }
   }
 }
