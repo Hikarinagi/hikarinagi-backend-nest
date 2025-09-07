@@ -11,7 +11,7 @@ export class ImageItem {
   @Prop({ type: String, required: true })
   url: string
 
-  @Prop({ type: String, enum: Object.values(DeviceType) })
+  @Prop({ type: String, enum: DeviceType })
   device?: DeviceType
 }
 

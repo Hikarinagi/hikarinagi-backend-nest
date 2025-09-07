@@ -30,6 +30,7 @@ import { HttpModule } from '@nestjs/axios'
 import { MessageModule } from '../message/message.module'
 import { EmailModule } from '../email/email.module'
 import { User, UserSchema } from '../user/schemas/user.schema'
+import { GalgameLinksCleanTask } from './tasks/galgame-links-clean.task'
 
 @Module({
   imports: [
@@ -55,6 +56,6 @@ import { User, UserSchema } from '../user/schemas/user.schema'
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [GalgameController, GalgameLinksController],
-  providers: [GalgameService, GalgameLinsService, EditHistoryService],
+  providers: [GalgameService, GalgameLinsService, EditHistoryService, GalgameLinksCleanTask],
 })
 export class GalgameModule {}
