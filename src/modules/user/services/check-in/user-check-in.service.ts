@@ -103,9 +103,9 @@ export class UserCheckInService {
   async makeUpCheckIn(userId: Types.ObjectId, dto: MakeUpCheckInDto) {
     const { date } = dto
     const targetDayStart = this.getDayStart(new Date(date))
+    const todayStart = this.getDayStart()
 
-    const now = new Date()
-    if (targetDayStart.getTime() > now.getTime()) {
+    if (targetDayStart.getTime() >= todayStart.getTime()) {
       throw new BadRequestException('You can only make up check-ins from the previous day')
     }
 
