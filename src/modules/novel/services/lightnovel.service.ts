@@ -874,4 +874,128 @@ export class LightNovelService {
       session.endSession()
     }
   }
+
+  async getRandomLightNovel(req: RequestWithUser) {
+    let nsfw = false
+    if (req.user && req.user.userSetting) {
+      nsfw = req.user.userSetting.showNSFWContent
+    }
+    const matchStage: any = {
+      status: 'published',
+    }
+    if (!nsfw) {
+      matchStage.nsfw = { $ne: true }
+    }
+    const lightNovel = await this.lightNovelModel.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'lightnovelvolumes',
+          let: { seriesId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [{ $eq: ['$seriesId', '$$seriesId'] }, { $eq: ['$status', 'published'] }],
+                },
+              },
+            },
+            { $sort: { publicationDate: 1 } },
+            { $limit: 1 },
+          ],
+          as: 'volumes',
+        },
+      },
+      { $match: { 'volumes.0.hasEpub': true } },
+      { $sample: { size: 1 } },
+      {
+        $addFields: {
+          publicationDate: { $arrayElemAt: ['$volumes.publicationDate', 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'rates',
+          let: { lightNovelId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$from', 'LightNovel'] },
+                    { $eq: ['$fromId', '$$lightNovelId'] },
+                    { $eq: ['$isDeleted', 'false'] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'ratesData',
+        },
+      },
+      {
+        $lookup: {
+          from: 'people',
+          localField: 'author',
+          foreignField: '_id',
+          as: 'authorDetails',
+        },
+      },
+      {
+        $lookup: {
+          from: 'producers',
+          localField: 'bunko',
+          foreignField: '_id',
+          as: 'bunkoDetails',
+        },
+      },
+      {
+        $lookup: {
+          from: 'tags',
+          localField: 'tags.tag',
+          foreignField: '_id',
+          as: 'tagDetails',
+        },
+      },
+      {
+        $addFields: {
+          rate: {
+            $cond: {
+              if: { $gt: [{ $size: '$ratesData' }, 0] },
+              then: { $avg: '$ratesData.rate' },
+              else: null,
+            },
+          },
+          rateCount: { $size: '$ratesData' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          novelId: 1,
+          name: 1,
+          name_cn: 1,
+          cover: 1,
+          publicationDate: 1,
+          nsfw: 1,
+          rate: 1,
+          rateCount: 1,
+          author: {
+            name: { $arrayElemAt: ['$authorDetails.name', 0] },
+          },
+          bunko: {
+            name: { $arrayElemAt: ['$bunkoDetails.name', 0] },
+          },
+          tags: {
+            $map: {
+              input: '$tagDetails',
+              as: 'tag',
+              in: '$$tag.name',
+            },
+          },
+        },
+      },
+    ])
+    return lightNovel
+  }
 }

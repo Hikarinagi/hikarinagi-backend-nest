@@ -59,6 +59,14 @@ export class GalgameController {
     }
   }
 
+  @Get('random')
+  async getRandomGalgame(@Req() req: RequestWithUser) {
+    const galgame = await this.galgameService.getRandomGalgame(req)
+    return {
+      data: galgame,
+    }
+  }
+
   @Get(':id')
   async findById(
     @Param('id') id: string,

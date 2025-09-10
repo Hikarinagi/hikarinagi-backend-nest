@@ -34,6 +34,14 @@ export class LightNovelController {
     }
   }
 
+  @Get('random')
+  async getRandomLightNovel(@Req() req: RequestWithUser) {
+    const lightNovel = await this.lightNovelService.getRandomLightNovel(req)
+    return {
+      data: lightNovel,
+    }
+  }
+
   @Get(':id')
   async findById(
     @Param('id') id: string,

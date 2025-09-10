@@ -1722,4 +1722,115 @@ export class GalgameService {
       headCover: galgame.headCover,
     }
   }
+
+  async getRandomGalgame(req: RequestWithUser) {
+    let nsfw = false
+    if (req.user && req.user.userSetting) {
+      nsfw = req.user.userSetting.showNSFWContent
+    }
+    const matchStage: any = {
+      status: 'published',
+    }
+    if (!nsfw) {
+      matchStage.nsfw = { $ne: true }
+    }
+    const galgame = await this.galgameModel.aggregate([
+      { $match: matchStage },
+      { $sample: { size: 1 } },
+      {
+        $lookup: {
+          from: 'rates',
+          let: { galgameId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$from', 'Galgame'] },
+                    { $eq: ['$fromId', '$$galgameId'] },
+                    { $eq: ['$isDeleted', false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'ratesData',
+        },
+      },
+      {
+        $lookup: {
+          from: 'producers',
+          localField: 'producers.producer',
+          foreignField: '_id',
+          as: 'producerDetails',
+        },
+      },
+      {
+        $lookup: {
+          from: 'tags',
+          localField: 'tags.tag',
+          foreignField: '_id',
+          as: 'tagDetails',
+        },
+      },
+      {
+        $addFields: {
+          rate: {
+            $cond: {
+              if: { $gt: [{ $size: '$ratesData' }, 0] },
+              then: { $avg: '$ratesData.rate' },
+              else: null,
+            },
+          },
+          rateCount: { $size: '$ratesData' },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          galId: 1,
+          transTitle: 1,
+          originTitle: 1,
+          cover: 1,
+          releaseDate: 1,
+          nsfw: 1,
+          rate: 1,
+          rateCount: 1,
+          producers: {
+            $map: {
+              input: '$producers',
+              as: 'producer',
+              in: {
+                producer: {
+                  name: {
+                    $first: {
+                      $map: {
+                        input: {
+                          $filter: {
+                            input: '$producerDetails',
+                            as: 'p',
+                            cond: { $eq: ['$$p._id', '$$producer.producer'] },
+                          },
+                        },
+                        as: 'pd',
+                        in: '$$pd.name',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          tags: {
+            $map: {
+              input: '$tagDetails',
+              as: 'tag',
+              in: '$$tag.name',
+            },
+          },
+        },
+      },
+    ])
+    return galgame
+  }
 }

@@ -85,18 +85,28 @@ export class PersonService {
             {
               $lookup: {
                 from: 'rates',
-                localField: 'galId',
-                foreignField: 'targetId',
-                as: 'rateData',
+                let: { galgameId: '$_id' },
                 pipeline: [
                   {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$from', 'Galgame'] },
+                          { $eq: ['$fromId', '$$galgameId'] },
+                          { $eq: ['$isDeleted', false] },
+                        ],
+                      },
+                    },
+                  },
+                  {
                     $group: {
-                      _id: '$targetId',
-                      avgRate: { $avg: '$rating' },
+                      _id: '$fromId',
+                      avgRate: { $avg: '$rate' },
                       rateCount: { $sum: 1 },
                     },
                   },
                 ],
+                as: 'rateData',
               },
             },
             {
@@ -190,18 +200,28 @@ export class PersonService {
             {
               $lookup: {
                 from: 'rates',
-                localField: 'novelId',
-                foreignField: 'targetId',
-                as: 'rateData',
+                let: { lightNovelId: '$_id' },
                 pipeline: [
                   {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$from', 'LightNovel'] },
+                          { $eq: ['$fromId', '$$lightNovelId'] },
+                          { $eq: ['$isDeleted', false] },
+                        ],
+                      },
+                    },
+                  },
+                  {
                     $group: {
-                      _id: '$targetId',
-                      avgRate: { $avg: '$rating' },
+                      _id: '$fromId',
+                      avgRate: { $avg: '$rate' },
                       rateCount: { $sum: 1 },
                     },
                   },
                 ],
+                as: 'rateData',
               },
             },
             // 获取第一卷作为发布日期
