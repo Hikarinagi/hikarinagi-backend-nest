@@ -26,7 +26,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         secret: this.configService.get<string>('jwt.secret'),
       })
 
-      // 将用户信息附加到请求对象
       request['user'] = payload
     } catch {
       throw new UnauthorizedException('身份验证失败: 令牌无效或已过期')
