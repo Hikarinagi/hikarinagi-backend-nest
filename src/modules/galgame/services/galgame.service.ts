@@ -1722,4 +1722,23 @@ export class GalgameService {
       headCover: galgame.headCover,
     }
   }
+
+  async getRandomGalgame(req: RequestWithUser) {
+    let nsfw = false
+    if (req.user && req.user.userSetting) {
+      nsfw = req.user.userSetting.showNSFWContent
+    }
+    const matchStage: any = {
+      status: 'published',
+    }
+    if (!nsfw) {
+      matchStage.nsfw = { $ne: true }
+    }
+    const galgame = await this.galgameModel.aggregate([
+      { $match: matchStage },
+      { $sample: { size: 1 } },
+      { $project: { _id: 0, galId: 1 } },
+    ])
+    return galgame && galgame.length > 0 ? galgame[0].galId : null
+  }
 }

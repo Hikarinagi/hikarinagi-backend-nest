@@ -25,7 +25,12 @@ import { UpdateGalgameCoverAndImagesDto } from '../dto/update-galgame.dto'
 import { GetGalgameMonthlyReleasesDto } from '../dto/get-galgame-monthly-releases.dto'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
+import { ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiOkResponseStandard } from '../../../common/swagger/response.decorators'
+import { Galgame } from '../schemas/galgame.schema'
 
+@ApiTags('Galgame')
+@ApiExtraModels(Galgame)
 @Controller('galgame')
 export class GalgameController {
   constructor(
@@ -56,6 +61,16 @@ export class GalgameController {
     const result = await this.galgameService.getGalgameMonthlyReleases(query)
     return {
       data: result,
+    }
+  }
+
+  @Get('random')
+  @ApiOperation({ summary: '随机获取一个 Galgame' })
+  @ApiOkResponseStandard({ type: 'number' }, { description: '随机返回单个 Galgame 的 galId' })
+  async getRandomGalgame(@Req() req: RequestWithUser) {
+    const galgame = await this.galgameService.getRandomGalgame(req)
+    return {
+      data: galgame,
     }
   }
 

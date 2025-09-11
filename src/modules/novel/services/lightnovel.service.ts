@@ -874,4 +874,42 @@ export class LightNovelService {
       session.endSession()
     }
   }
+
+  async getRandomLightNovel(req: RequestWithUser) {
+    let nsfw = false
+    if (req.user && req.user.userSetting) {
+      nsfw = req.user.userSetting.showNSFWContent
+    }
+    const matchStage: any = {
+      status: 'published',
+    }
+    if (!nsfw) {
+      matchStage.nsfw = { $ne: true }
+    }
+    const lightNovel = await this.lightNovelModel.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'lightnovelvolumes',
+          let: { seriesId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [{ $eq: ['$seriesId', '$$seriesId'] }, { $eq: ['$status', 'published'] }],
+                },
+                hasEpub: true,
+              },
+            },
+            { $limit: 1 },
+          ],
+          as: 'volumes',
+        },
+      },
+      { $match: { 'volumes.0': { $exists: true } } },
+      { $sample: { size: 1 } },
+      { $project: { _id: 0, novelId: 1 } },
+    ])
+    return lightNovel[0].novelId
+  }
 }
