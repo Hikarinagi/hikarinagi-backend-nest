@@ -4,7 +4,7 @@ import { GetLightNovelListDto } from '../dto/get-lightnovel-list.dto'
 import { RequestWithUser } from '../../../modules/auth/interfaces/request-with-user.interface'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
-import { ApiExtraModels, ApiOperation, ApiTags, getSchemaPath } from '@nestjs/swagger'
+import { ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ApiOkResponseStandard } from '../../../common/swagger/response.decorators'
 import { LightNovel } from '../schemas/light-novel.schema'
 import { CreateLightNovelDto } from '../dto/create-lightnovel.dto'
@@ -41,7 +41,7 @@ export class LightNovelController {
 
   @Get('random')
   @ApiOperation({ summary: '随机获取一个轻小说' })
-  @ApiOkResponseStandard({ $ref: getSchemaPath(LightNovel) }, { description: '随机返回单个轻小说' })
+  @ApiOkResponseStandard({ type: 'number' }, { description: '随机返回单个轻小说的 novelId' })
   async getRandomLightNovel(@Req() req: RequestWithUser) {
     const lightNovel = await this.lightNovelService.getRandomLightNovel(req)
     return {

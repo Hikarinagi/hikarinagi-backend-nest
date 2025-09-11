@@ -898,104 +898,18 @@ export class LightNovelService {
                 $expr: {
                   $and: [{ $eq: ['$seriesId', '$$seriesId'] }, { $eq: ['$status', 'published'] }],
                 },
+                hasEpub: true,
               },
             },
-            { $sort: { publicationDate: 1 } },
             { $limit: 1 },
           ],
           as: 'volumes',
         },
       },
-      { $match: { 'volumes.0.hasEpub': true } },
+      { $match: { 'volumes.0': { $exists: true } } },
       { $sample: { size: 1 } },
-      {
-        $addFields: {
-          publicationDate: { $arrayElemAt: ['$volumes.publicationDate', 0] },
-        },
-      },
-      {
-        $lookup: {
-          from: 'rates',
-          let: { lightNovelId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$from', 'LightNovel'] },
-                    { $eq: ['$fromId', '$$lightNovelId'] },
-                    { $eq: ['$isDeleted', 'false'] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: 'ratesData',
-        },
-      },
-      {
-        $lookup: {
-          from: 'people',
-          localField: 'author',
-          foreignField: '_id',
-          as: 'authorDetails',
-        },
-      },
-      {
-        $lookup: {
-          from: 'producers',
-          localField: 'bunko',
-          foreignField: '_id',
-          as: 'bunkoDetails',
-        },
-      },
-      {
-        $lookup: {
-          from: 'tags',
-          localField: 'tags.tag',
-          foreignField: '_id',
-          as: 'tagDetails',
-        },
-      },
-      {
-        $addFields: {
-          rate: {
-            $cond: {
-              if: { $gt: [{ $size: '$ratesData' }, 0] },
-              then: { $avg: '$ratesData.rate' },
-              else: null,
-            },
-          },
-          rateCount: { $size: '$ratesData' },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          novelId: 1,
-          name: 1,
-          name_cn: 1,
-          cover: 1,
-          publicationDate: 1,
-          nsfw: 1,
-          rate: 1,
-          rateCount: 1,
-          author: {
-            name: { $arrayElemAt: ['$authorDetails.name', 0] },
-          },
-          bunko: {
-            name: { $arrayElemAt: ['$bunkoDetails.name', 0] },
-          },
-          tags: {
-            $map: {
-              input: '$tagDetails',
-              as: 'tag',
-              in: '$$tag.name',
-            },
-          },
-        },
-      },
+      { $project: { _id: 0, novelId: 1 } },
     ])
-    return lightNovel
+    return lightNovel[0].novelId
   }
 }
