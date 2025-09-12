@@ -14,7 +14,13 @@ export class SearchRedisService implements OnModuleInit, OnModuleDestroy {
     const password = this.configService.get('redis.password') || undefined
     const database = this.configService.get('redis.database') || 0
 
-    this.client = new IORedis({ host, port, password, db: Number(database) })
+    this.client = new IORedis({
+      host,
+      port,
+      password,
+      db: Number(database),
+      keyPrefix: this.configService.get('redis.keyPrefix'),
+    })
   }
 
   getClient(): Redis {
