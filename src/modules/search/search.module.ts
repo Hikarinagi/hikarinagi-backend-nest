@@ -22,12 +22,18 @@ import { HikariConfigService } from '../../common/config/configs'
           port: config.get('redis.port'),
           password: config.get('redis.password') || undefined,
           db: Number(config.get('redis.database') || 0),
-          keyPrefix: config.get('redis.keyPrefix'),
+          prefix: config.get('redis.keyPrefix'),
         },
       }),
     }),
     MongooseModule.forFeature([{ name: SearchEvent.name, schema: SearchEventSchema }]),
-    BullModule.registerQueue({ name: SEARCH_ANALYTICS_QUEUE }),
+    BullModule.registerQueue({
+      name: SEARCH_ANALYTICS_QUEUE,
+      defaultJobOptions: {
+        removeOnComplete: { age: 3600, count: 1000 },
+        removeOnFail: { age: 24 * 3600, count: 1000 },
+      },
+    }),
   ],
   providers: [
     TokenizationService,
