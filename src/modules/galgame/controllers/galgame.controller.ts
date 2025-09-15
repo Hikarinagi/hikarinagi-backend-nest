@@ -28,6 +28,7 @@ import { Cache } from 'cache-manager'
 import { ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ApiOkResponseStandard } from '../../../common/swagger/response.decorators'
 import { Galgame } from '../schemas/galgame.schema'
+import { CheckDuplicateDto } from '../dto/check-duplicate.dto'
 
 @ApiTags('Galgame')
 @ApiExtraModels(Galgame)
@@ -146,6 +147,29 @@ export class GalgameController {
     const galgame = await this.galgameService.createGalgame(body, req)
     return {
       data: galgame,
+    }
+  }
+
+  @Post('check-duplicate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(HikariUserGroup.CREATOR)
+  @ApiOperation({ summary: '检查 Galgame 是否重复，及外部ID有效性与匹配情况' })
+  @ApiOkResponseStandard({
+    type: 'object',
+    properties: {
+      isDuplicate: { type: 'boolean' },
+      name: { type: 'string', nullable: true },
+      message: { type: 'string' },
+    },
+  })
+  async checkDuplicate(@Body() body: CheckDuplicateDto) {
+    const result = await this.galgameService.checkDuplicate({
+      bangumiId: body.bangumiId,
+      vndbId: body.vndbId,
+      skipMatchCheck: body.skipMatchCheck,
+    })
+    return {
+      data: result,
     }
   }
 
