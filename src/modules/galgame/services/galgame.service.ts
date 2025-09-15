@@ -55,6 +55,135 @@ export class GalgameService {
     private readonly emailService: EmailService,
   ) {}
 
+  async checkDuplicate(payload: { bangumiId: number; vndbId: number; skipMatchCheck?: boolean }) {
+    const { bangumiId, vndbId, skipMatchCheck } = payload
+    if (!bangumiId || !vndbId) {
+      throw new BadRequestException('bangumiId and vndbId is required')
+    }
+
+    const existing = await this.galgameModel.findOne({ bangumiGameId: bangumiId, vndbId })
+    if (existing) {
+      return {
+        isDuplicate: true,
+        name: existing.originTitle?.[0] || null,
+        message: 'Game already exists',
+      }
+    }
+
+    const vndbCheck = await this.checkVndbId(vndbId)
+    if (!vndbCheck.isValid) {
+      return {
+        isDuplicate: false,
+        message: 'Invalid VNDB ID',
+      }
+    }
+
+    const bangumiCheck = await this.checkBangumiId(bangumiId)
+    if (!bangumiCheck.isValid) {
+      return {
+        isDuplicate: false,
+        message: 'Invalid Bangumi ID',
+      }
+    }
+
+    const match = this.checkDataMatch(vndbCheck.data, bangumiCheck.data)
+    if (!match.isMatch && !skipMatchCheck) {
+      return {
+        isDuplicate: false,
+        message: 'VNDB and Bangumi data do not match',
+      }
+    }
+
+    return {
+      isDuplicate: false,
+      message: 'Not duplicate',
+    }
+  }
+
+  private async checkBangumiId(
+    bangumiId: number,
+  ): Promise<{ isValid: boolean; data: { releaseDate: string; title: string[] } | null }> {
+    const token = await this.bangumiAuthService.getValidAccessToken()
+    const headers = {
+      'User-Agent': 'trim21/bangumi-episode-ics',
+      Authorization: 'Bearer ' + token,
+    }
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`https://api.bgm.tv/v0/subjects/${bangumiId}`, { headers }),
+      )
+      return {
+        isValid: true,
+        data: {
+          releaseDate: response.data.date,
+          title: [response.data.name, response.data.name_cn].filter(Boolean),
+        },
+      }
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        try {
+          await this.bangumiAuthService.refreshAccessToken()
+        } catch {
+          return { isValid: false, data: null }
+        }
+        return this.checkBangumiId(bangumiId)
+      }
+      if (error?.response?.status === 404) {
+        return { isValid: false, data: null }
+      }
+      return { isValid: false, data: null }
+    }
+  }
+
+  private async checkVndbId(
+    vndbId: number,
+  ): Promise<{ isValid: boolean; data: { releaseDate: string; title: string[] } | null }> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          'https://api.vndb.org/kana/vn',
+          {
+            filters: ['id', '=', `v${vndbId}`],
+            fields: 'released, titles.title, aliases',
+          },
+          { headers: { 'Content-Type': 'application/json' } },
+        ),
+      )
+      const results = response.data?.results || []
+      if (!results.length) return { isValid: false, data: null }
+      return {
+        isValid: true,
+        data: {
+          releaseDate: results[0].released,
+          title: (results[0].titles || []).map(t => t.title).filter(Boolean),
+        },
+      }
+    } catch (error) {
+      if (error?.response?.status === 400) return { isValid: false, data: null }
+      return { isValid: false, data: null }
+    }
+  }
+
+  private normalizeTitle(title: string): string {
+    return (title || '')
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/[^\w\u4e00-\u9fff]/g, '')
+  }
+
+  private checkDataMatch(
+    vndb: { releaseDate: string; title: string[] },
+    bangumi: { releaseDate: string; title: string[] },
+  ): { isMatch: boolean } {
+    const dateMatch =
+      !!vndb.releaseDate && !!bangumi.releaseDate ? vndb.releaseDate === bangumi.releaseDate : true
+
+    const vTitles = (vndb.title || []).map(t => this.normalizeTitle(t)).filter(Boolean)
+    const bTitles = (bangumi.title || []).map(t => this.normalizeTitle(t)).filter(Boolean)
+    const titleMatch = vTitles.some(v => bTitles.includes(v))
+
+    return { isMatch: dateMatch && titleMatch }
+  }
   async findById(id: string, preview: boolean = false, req: RequestWithUser) {
     if (isNaN(Number(id))) {
       throw new BadRequestException('id must be a number')
