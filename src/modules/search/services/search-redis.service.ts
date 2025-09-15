@@ -19,7 +19,6 @@ export class SearchRedisService implements OnModuleInit, OnModuleDestroy {
       port,
       password,
       db: Number(database),
-      keyPrefix: this.configService.get('redis.keyPrefix'),
     })
   }
 

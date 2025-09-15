@@ -22,7 +22,6 @@ import { HikariConfigService } from '../../common/config/configs'
           port: config.get('redis.port'),
           password: config.get('redis.password') || undefined,
           db: Number(config.get('redis.database') || 0),
-          prefix: config.get('redis.keyPrefix'),
         },
       }),
     }),
