@@ -393,7 +393,6 @@ export class CreateGalgameDto {
   staffs: CreateGalgameStaffDto[]
 
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CreateGalgameCharacterDto)
   characters: CreateGalgameCharacterDto[]
