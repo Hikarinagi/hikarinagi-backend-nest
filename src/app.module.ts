@@ -30,6 +30,7 @@ import { SearchModule } from './modules/search/search.module'
 import { SiteModule } from './modules/site/site.module'
 import { SitemapModule } from './modules/sitemap/sitemap.module'
 import { IndexNowModule } from './modules/indexnow/index-now.module'
+import { RateModule } from './modules/rate/rate.module'
 
 @Module({
   imports: [
@@ -122,6 +123,7 @@ import { IndexNowModule } from './modules/indexnow/index-now.module'
     SiteModule,
     SitemapModule,
     IndexNowModule,
+    RateModule,
   ],
   controllers: [],
   providers: [
