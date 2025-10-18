@@ -81,6 +81,12 @@ export class Rate {
     type: Boolean,
     default: false,
   })
+  isSpoiler: boolean
+
+  @Prop({
+    type: Boolean,
+    default: false,
+  })
   isDeleted: boolean
 }
 

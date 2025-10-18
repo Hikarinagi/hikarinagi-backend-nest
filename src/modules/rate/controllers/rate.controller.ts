@@ -1,4 +1,17 @@
-import { Controller, Delete, HttpCode, HttpStatus, Param, Req, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Get,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
 import { RateService } from '../services/rate.service'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../../auth/guards/roles.guard'
@@ -7,6 +20,7 @@ import { Roles } from '../../auth/decorators/roles.decorator'
 import { HikariUserGroup } from '../../auth/enums/hikari-user-group.enum'
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiNoContentResponse,
@@ -14,14 +28,57 @@ import {
   ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiOkResponse,
+  ApiExtraModels,
+  getSchemaPath,
 } from '@nestjs/swagger'
+import { ApiOkResponseStandard } from '../../../common/swagger/response.decorators'
+import { Rate } from '../schemas/rate.schema'
+import { CreateRateDto } from '../dto/create-rate.dto'
+import { UpdateRateDto } from '../dto/update-rate.dto'
+import { GetRatesQueryDto } from '../dto/get-rates.dto'
+import { GetAllRatesQueryDto } from '../dto/get-all-rates.dto'
 
 @ApiTags('Rate')
+@ApiExtraModels(Rate)
 @ApiBearerAuth()
 @Controller('rate')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RateController {
   constructor(private readonly rateService: RateService) {}
+
+  @Post()
+  @Roles(HikariUserGroup.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: '创建评分' })
+  @ApiCreatedResponse({ description: '创建成功' })
+  @ApiOkResponseStandard({ $ref: getSchemaPath(Rate) })
+  @ApiUnauthorizedResponse({ description: '未认证或令牌无效' })
+  async create(@Body() body: CreateRateDto, @Req() req: RequestWithUser) {
+    const rate = await this.rateService.createRate(body, req)
+    return {
+      data: rate,
+    }
+  }
+
+  @Roles(HikariUserGroup.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: '更新评分' })
+  @ApiOkResponse({ description: '更新成功' })
+  @ApiOkResponseStandard({ $ref: getSchemaPath(Rate) })
+  @ApiUnauthorizedResponse({ description: '未认证或令牌无效' })
+  @ApiForbiddenResponse({ description: '无权限修改该评分' })
+  @ApiNotFoundResponse({ description: '评分不存在或无权限修改' })
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() body: UpdateRateDto, @Req() req: RequestWithUser) {
+    const rate = await this.rateService.updateRate(id, body, req)
+    return {
+      data: {
+        ...rate,
+        isRated: true,
+      },
+    }
+  }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -34,5 +91,69 @@ export class RateController {
   @ApiNotFoundResponse({ description: '评分不存在' })
   async delete(@Param('id') id: string, @Req() req: RequestWithUser) {
     await this.rateService.deleteRate(id, req)
+  }
+
+  @ApiOperation({ summary: '获取评分列表' })
+  @ApiOkResponseStandard({
+    type: 'object',
+    properties: {
+      list: { type: 'array', items: { $ref: getSchemaPath(Rate) } },
+      myRate: { type: 'object' },
+      avgRate: { type: 'number' },
+      count: {
+        type: 'object',
+        properties: {
+          total: { type: 'number' },
+          going: { type: 'number' },
+          completed: { type: 'number' },
+          onhold: { type: 'number' },
+          dropped: { type: 'number' },
+          plan: { type: 'number' },
+          avgTime: { type: 'number' },
+        },
+      },
+      pagination: {
+        type: 'object',
+        properties: {
+          page: { type: 'number' },
+          totalPages: { type: 'number' },
+          limit: { type: 'number' },
+          total: { type: 'number' },
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({ description: '未认证或令牌无效' })
+  @Get()
+  async getRates(@Query() query: GetRatesQueryDto) {
+    const data = await this.rateService.getRates(query)
+    return {
+      data,
+    }
+  }
+
+  @ApiOperation({ summary: '获取全部评分（分类）' })
+  @ApiOkResponseStandard({
+    type: 'object',
+    properties: {
+      rates: { type: 'array', items: { $ref: getSchemaPath(Rate) } },
+      pagination: {
+        type: 'object',
+        properties: {
+          page: { type: 'number' },
+          totalPages: { type: 'number' },
+          limit: { type: 'number' },
+          total: { type: 'number' },
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({ description: '未认证或令牌无效' })
+  @Get('all')
+  async getAllRates(@Query() query: GetAllRatesQueryDto, @Req() req: RequestWithUser) {
+    const data = await this.rateService.getAllRates(query, req)
+    return {
+      data,
+    }
   }
 }
