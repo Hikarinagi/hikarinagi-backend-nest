@@ -78,7 +78,6 @@ export class UpdateRequestController {
   }
 
   @Get(':entityType/:entityId')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '按实体获取已合并的更新请求的简要列表' })
   @ApiParam({ name: 'entityType', description: '实体类型' })
   @ApiParam({ name: 'entityId', description: '实体ID(ObjectId)' })
@@ -103,7 +102,6 @@ export class UpdateRequestController {
     },
     { description: '返回简要列表' },
   )
-  @ApiUnauthorizedResponse({ description: '未认证' })
   async getUpdateRequestsByEntity(@Param() params: GetUpdateRequestsByEntityParamsDto) {
     const requests = await this.updateRequestService.getUpdateRequestsByEntity(params)
     return {
@@ -112,14 +110,12 @@ export class UpdateRequestController {
   }
 
   @Get(':updateRequestId')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '根据ID获取更新请求' })
   @ApiParam({ name: 'updateRequestId', description: '更新请求ID(ObjectId)' })
   @ApiOkResponseStandard(
     { $ref: getSchemaPath(UpdateRequest) },
     { description: '返回单个更新请求' },
   )
-  @ApiUnauthorizedResponse({ description: '未认证' })
   @ApiNotFoundResponse({ description: '未找到更新请求' })
   async getUpdateRequestById(@Param('updateRequestId') updateRequestId: string) {
     const request = await this.updateRequestService.getUpdateRequestById(
