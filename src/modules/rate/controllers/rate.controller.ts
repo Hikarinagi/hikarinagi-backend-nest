@@ -38,16 +38,16 @@ import { CreateRateDto } from '../dto/create-rate.dto'
 import { UpdateRateDto } from '../dto/update-rate.dto'
 import { GetRatesQueryDto } from '../dto/get-rates.dto'
 import { GetAllRatesQueryDto } from '../dto/get-all-rates.dto'
+import { GetReviewsQueryDto } from '../dto/get-reviews.dto'
 
 @ApiTags('Rate')
 @ApiExtraModels(Rate)
-@ApiBearerAuth()
 @Controller('rate')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class RateController {
   constructor(private readonly rateService: RateService) {}
 
   @Post()
+  @ApiBearerAuth()
   @Roles(HikariUserGroup.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: '创建评分' })
@@ -63,6 +63,7 @@ export class RateController {
 
   @Roles(HikariUserGroup.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '更新评分' })
   @ApiOkResponse({ description: '更新成功' })
   @ApiOkResponseStandard({ $ref: getSchemaPath(Rate) })
@@ -83,6 +84,8 @@ export class RateController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(HikariUserGroup.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '删除评分' })
   @ApiParam({ name: 'id', description: '评分ID', required: true })
   @ApiNoContentResponse({ description: '删除成功' })
@@ -123,7 +126,6 @@ export class RateController {
       },
     },
   })
-  @ApiUnauthorizedResponse({ description: '未认证或令牌无效' })
   @Get()
   async getRates(@Query() query: GetRatesQueryDto) {
     const data = await this.rateService.getRates(query)
@@ -150,8 +152,52 @@ export class RateController {
   })
   @ApiUnauthorizedResponse({ description: '未认证或令牌无效' })
   @Get('all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   async getAllRates(@Query() query: GetAllRatesQueryDto, @Req() req: RequestWithUser) {
     const data = await this.rateService.getAllRates(query, req)
+    return {
+      data,
+    }
+  }
+
+  @ApiOperation({ summary: '获取点评列表' })
+  @ApiOkResponseStandard({
+    type: 'object',
+    properties: {
+      list: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'number' },
+            title: { type: 'string' },
+            content: { type: 'string' },
+            creator: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                userId: { type: 'string' },
+                avatar: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+      pagination: {
+        type: 'object',
+        properties: {
+          page: { type: 'number' },
+          totalPages: { type: 'number' },
+          limit: { type: 'number' },
+          total: { type: 'number' },
+        },
+      },
+    },
+  })
+  @Get('review')
+  async getReviews(@Query() query: GetReviewsQueryDto) {
+    const data = await this.rateService.getReviews(query)
     return {
       data,
     }

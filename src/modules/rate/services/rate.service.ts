@@ -15,6 +15,8 @@ import { UpdateRateDto } from '../dto/update-rate.dto'
 import { GetRatesQueryDto } from '../dto/get-rates.dto'
 import { RateInteraction, RateInteractionDocument } from '../schemas/rate-interaction.schema'
 import { GetAllRatesQueryDto } from '../dto/get-all-rates.dto'
+import { Article, ArticleDocument } from '../../content/schemas/article.schema'
+import { GetReviewsQueryDto } from '../dto/get-reviews.dto'
 
 @Injectable()
 export class RateService {
@@ -22,6 +24,7 @@ export class RateService {
     @InjectModel(Rate.name) private readonly rateModel: Model<RateDocument>,
     @InjectModel(RateInteraction.name)
     private readonly rateInteractionModel: Model<RateInteractionDocument>,
+    @InjectModel(Article.name) private readonly articleModel: Model<ArticleDocument>,
   ) {}
 
   async createRate(body: CreateRateDto, req: RequestWithUser): Promise<Rate> {
@@ -195,7 +198,8 @@ export class RateService {
       )
       return acc + timeInHours
     }, 0)
-    const avgTime = completed.length > 0 ? totalTimeToFinish / completed.length : 0
+    const avgTime =
+      completed.length > 0 ? Math.round((totalTimeToFinish / completed.length) * 10) / 10 : 0
 
     const count = {
       total,
@@ -287,5 +291,53 @@ export class RateService {
 
     rate.isDeleted = true
     await rate.save()
+  }
+
+  async getReviews(query: GetReviewsQueryDto) {
+    const page = Number(query.page || 1)
+    const limit = Number(query.limit || 10)
+
+    if (page < 1 || limit < 1 || limit > 100) {
+      throw new BadRequestException('invalid pagination parameters')
+    }
+
+    if (!query.fromId) {
+      throw new BadRequestException('missing required parameters')
+    }
+
+    const filter = {
+      isReview: true,
+      status: 'published',
+      'relatedWorks.workId': new Types.ObjectId(String(query.fromId)),
+    }
+
+    const [reviews, total] = await Promise.all([
+      this.articleModel
+        .find(filter)
+        .select('title content id -_id')
+        .populate('creator.userId', 'name userId avatar -_id')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      this.articleModel.countDocuments(filter),
+    ])
+
+    const totalPages = Math.ceil(total / limit)
+
+    const processedReviews = reviews.map(review => ({
+      ...review,
+      creator: review.creator.userId,
+    }))
+
+    return {
+      list: processedReviews,
+      pagination: {
+        page,
+        totalPages,
+        limit,
+        total,
+      },
+    }
   }
 }

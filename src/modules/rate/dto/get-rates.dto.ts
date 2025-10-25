@@ -1,5 +1,5 @@
 import { IsEnum, IsMongoId, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator'
-import { Type } from 'class-transformer'
+import { Transform, Type } from 'class-transformer'
 
 export class GetRatesQueryDto {
   @IsOptional()
@@ -9,11 +9,13 @@ export class GetRatesQueryDto {
   @IsOptional()
   @IsString()
   @IsMongoId()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   fromId?: string
 
   @IsOptional()
   @IsString()
   @IsMongoId()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   userId?: string
 
   @IsOptional()
