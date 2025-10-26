@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsNotEmpty, IsOptional, IsEnum, Min } from 'class-validator'
+import { IsString, IsNumber, IsNotEmpty, IsOptional, IsEnum, Min, IsUrl } from 'class-validator'
 import { Type } from 'class-transformer'
 
 enum GalgameLinkType {
@@ -74,6 +74,17 @@ export class UpdateGalgameLinkDto {
   linkType: GalgameLinkType
 
   @IsString()
+  @IsUrl(
+    {
+      protocols: ['http', 'https', 'ftp', 'magnet'],
+      require_protocol: false,
+      require_valid_protocol: true,
+      require_host: false,
+      require_tld: false,
+      allow_protocol_relative_urls: false,
+    },
+    { message: 'link must be a valid URL or magnet link' },
+  )
   @IsNotEmpty()
   link: string
 
