@@ -38,6 +38,7 @@ export class EmailService {
       try {
         await axios.post(this.emailConfig.endPoint, null, {
           params: emailData,
+          family: 4,
         })
 
         this.logger.log(`Email sent successfully to ${to}`)
@@ -59,6 +60,7 @@ export class EmailService {
           headers: {
             'X-Server-API-Key': this.emailConfig.apiKey,
           },
+          family: 4,
         })
 
         if (res.data.status !== 'success') {
