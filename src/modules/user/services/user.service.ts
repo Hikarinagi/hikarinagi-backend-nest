@@ -12,7 +12,13 @@ import * as mongoose from 'mongoose'
 import { JwtService } from '@nestjs/jwt'
 import { User, UserDocument } from '../schemas/user.schema'
 import { UserSetting, UserSettingDocument } from '../schemas/user-setting.schema'
-import { VerificationForSignupDto, CreateUserDto, LoginUserDto, RefreshTokenDto } from '../dto/user'
+import {
+  VerificationForSignupDto,
+  CreateUserDto,
+  LoginUserDto,
+  RefreshTokenDto,
+  ResetPasswordDto,
+} from '../dto/user'
 import { HikariConfigService } from '../../../common/config/configs'
 import { VerificationService } from '../../email/services/verification.service'
 import { CounterService } from '../../shared/services/counter.service'
@@ -22,6 +28,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { UserStatusDto } from '../dto/response/user-status.dto'
 import { SystemMessage, SystemMessageDocument } from '../../message/schemas/system-message.schema'
+import { SystemMessageType } from '../../message/dto/send-system-message.dto'
 import { UserCheckInService } from './check-in/user-check-in.service'
 import { UserUnreadSummaryDto } from '../dto/response/user-unread-summary.dto'
 import { PaginatedResult } from '../../../common/interfaces/paginated-result.interface'
@@ -78,6 +85,41 @@ export class UserService {
       email: verificationForSignupDto.email,
       type: 'register',
     }
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
+    const { email, uuid, verificationCode, newPassword } = resetPasswordDto
+
+    const user = await this.userModel.findOne({ email, isVerified: true })
+    if (!user) {
+      throw new NotFoundException('用户不存在')
+    }
+
+    const { verified, message } = await this.verificationService.verifyCode({
+      email,
+      code: verificationCode,
+      uuid,
+    })
+
+    if (!verified) {
+      throw new ForbiddenException(message || '验证码无效或已过期')
+    }
+
+    user.password = newPassword
+    user.hikariRefreshToken = []
+    await user.save()
+
+    const content = `你的密码已重置<br><br>重置时间: ${new Date().toLocaleString()}<br>如非本人操作，请立即联系管理员`
+
+    const id = await this.counterService.getNextSequence('systemMessageId')
+
+    await this.systemMessageModel.create({
+      id,
+      targetUser: user._id,
+      type: SystemMessageType.NOTIFICATION,
+      title: '密码已重置',
+      content,
+    })
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {

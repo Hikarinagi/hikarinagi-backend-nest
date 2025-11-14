@@ -19,8 +19,6 @@ import { HikariUserGroup } from '../../auth/enums/hikari-user-group.enum'
 import { SendEmailDto, RequestVerificationCodeDto, VerificationCodeDto } from '../dto'
 
 @Controller('email')
-@UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
-@Roles(HikariUserGroup.USER)
 export class EmailController {
   constructor(
     private readonly emailService: EmailService,
@@ -29,6 +27,7 @@ export class EmailController {
 
   @Post('send')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
   @Roles(HikariUserGroup.ADMIN)
   async sendEmail(@Body() sendEmailDto: SendEmailDto) {
     await this.emailService.sendEmail(sendEmailDto)
@@ -39,6 +38,7 @@ export class EmailController {
 
   @Post('verification-code/request')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
   async requestVerificationCode(
     @Req() req: RequestWithUser,
     @Body() requestDto: RequestVerificationCodeDto,
@@ -65,6 +65,8 @@ export class EmailController {
 
   @Post('verification-code/verify')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
+  @Roles(HikariUserGroup.USER)
   async verifyCode(@Body() verificationDto: VerificationCodeDto, @Req() req: RequestWithUser) {
     const result = await this.verificationService.verifyCode(verificationDto, req)
     return {

@@ -23,7 +23,12 @@ export class VerificationService {
     uuid?: string
     message?: string
   }> {
-    if (type !== 'register' && type !== 'email-change' && req.user.email !== email) {
+    if (
+      type !== 'register' &&
+      type !== 'email-change' &&
+      type !== 'password-reset' &&
+      req.user.email !== email
+    ) {
       throw new BadRequestException('邮箱不匹配')
     }
 

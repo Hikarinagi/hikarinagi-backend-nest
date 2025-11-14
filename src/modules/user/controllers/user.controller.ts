@@ -15,7 +15,13 @@ import {
   ParseIntPipe,
 } from '@nestjs/common'
 import { UserService } from '../services/user.service'
-import { VerificationForSignupDto, CreateUserDto, LoginUserDto, RefreshTokenDto } from '../dto/user'
+import {
+  VerificationForSignupDto,
+  CreateUserDto,
+  LoginUserDto,
+  RefreshTokenDto,
+  ResetPasswordDto,
+} from '../dto/user'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { RequestWithUser } from '../../auth/interfaces/request-with-user.interface'
 import { HikariUserGroup } from '../../auth/enums/hikari-user-group.enum'
@@ -90,6 +96,21 @@ export class UserController {
     return {
       data: user,
       message: 'register success',
+    }
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: '重置密码（通过邮箱验证码）' })
+  @ApiOkResponse({
+    description: '密码重置成功',
+  })
+  @ApiBadRequestResponse({ description: '参数错误' })
+  @ApiNotFoundResponse({ description: '用户不存在' })
+  @ApiForbiddenResponse({ description: '验证码无效或已过期' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.userService.resetPassword(resetPasswordDto)
+    return {
+      message: '密码重置成功',
     }
   }
 
