@@ -1,5 +1,5 @@
 import { IsEnum, IsMongoId, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator'
-import { Type } from 'class-transformer'
+import { Type, Transform } from 'class-transformer'
 
 export class GetCommentListQueryDto {
   @IsString()
@@ -19,6 +19,7 @@ export class GetCommentListQueryDto {
   @IsMongoId()
   fromId: string
 
+  @Transform(({ value }) => (value ? value : undefined))
   @IsOptional()
   @IsString()
   @IsMongoId()
