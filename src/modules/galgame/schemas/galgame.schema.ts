@@ -250,7 +250,7 @@ export class Galgame {
   @Prop({ type: Number, required: false })
   vndbId: number
 
-  @Prop({ type: Number, required: false, unique: true })
+  @Prop({ type: Number, required: false })
   bangumiGameId: number
 
   @Prop({ type: String })
@@ -344,3 +344,11 @@ export class Galgame {
 
 export type GalgameDocument = Galgame & Document
 export const GalgameSchema = SchemaFactory.createForClass(Galgame)
+
+GalgameSchema.index(
+  { bangumiGameId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { bangumiGameId: { $exists: true, $ne: null } },
+  },
+)
