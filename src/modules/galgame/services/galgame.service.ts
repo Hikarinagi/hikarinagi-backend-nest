@@ -1293,13 +1293,15 @@ export class GalgameService {
         userId: new Types.ObjectId(req.user._id),
         name: req.user.name,
       }
-      const existingGalgame = await this.galgameModel
-        .findOne({ bangumiGameId: galgame.bangumiGameId })
-        .session(session)
-      if (existingGalgame) {
-        throw new ConflictException(
-          `Galgame with bangumiGameId ${galgame.bangumiGameId} already exists`,
-        )
+      if (galgame.bangumiGameId !== undefined && galgame.bangumiGameId !== null) {
+        const existingGalgame = await this.galgameModel
+          .findOne({ bangumiGameId: galgame.bangumiGameId })
+          .session(session)
+        if (existingGalgame) {
+          throw new ConflictException(
+            `Galgame with bangumiGameId ${galgame.bangumiGameId} already exists`,
+          )
+        }
       }
 
       // 2. 创建/获取标签
