@@ -45,7 +45,9 @@ export class CommentService {
     }
 
     const sortOption =
-      sort === 'hot' ? ({ like: -1, createdAt: -1 } as const) : ({ createdAt: -1 } as const)
+      sort === 'hot'
+        ? ({ isPinned: -1, like: -1, createdAt: -1 } as const)
+        : ({ isPinned: -1, createdAt: -1 } as const)
 
     const comments = await this.commentModel
       .find(filter)
