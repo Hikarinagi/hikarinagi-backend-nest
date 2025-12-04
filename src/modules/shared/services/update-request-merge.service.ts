@@ -206,7 +206,7 @@ export class UpdateRequestMergeService {
 
       // 批量更新角色的 act 字段
       const characterUpdates = params.mergeData.characters.map(async charDto => {
-        const characterDoc = await this.characterModel.findById(charDto._id).exec()
+        const characterDoc = await this.characterModel.findById(charDto._id).lean().exec()
         if (characterDoc) {
           // 保留其他作品的 act 条目
           const otherWorkActs =
@@ -268,8 +268,10 @@ export class UpdateRequestMergeService {
           }
 
           // 更新角色的act数组
-          characterDoc.act = [...otherWorkActs, ...currentWorkActs]
-          return characterDoc.save()
+          const nextActs = [...otherWorkActs, ...currentWorkActs]
+          return this.characterModel
+            .updateOne({ _id: charDto._id }, { $set: { act: nextActs } })
+            .exec()
         }
       })
 
@@ -422,7 +424,7 @@ export class UpdateRequestMergeService {
       }))
 
       const characterUpdates = params.mergeData.characters.map(async charDto => {
-        const characterDoc = await this.characterModel.findById(charDto._id).exec()
+        const characterDoc = await this.characterModel.findById(charDto._id).lean().exec()
         if (!characterDoc) return
 
         // 过滤掉其他作品的act条目
@@ -482,8 +484,10 @@ export class UpdateRequestMergeService {
           ]
         }
 
-        characterDoc.act = [...otherWorkActs, ...currentWorkActs]
-        return characterDoc.save()
+        const nextActs = [...otherWorkActs, ...currentWorkActs]
+        return this.characterModel
+          .updateOne({ _id: charDto._id }, { $set: { act: nextActs } })
+          .exec()
       })
 
       await Promise.all(characterUpdates.filter(Boolean))
