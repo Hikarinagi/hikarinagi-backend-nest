@@ -10,6 +10,11 @@ export interface AuthConfig {
 export interface DatabaseConfig {
   database: {
     uri: string
+    backup?: {
+      enable?: boolean
+      retention?: number
+      uri?: string
+    }
   }
   redis: {
     host: string
@@ -67,8 +72,20 @@ export interface AppConfig {
   }
 }
 
+export interface S3Config {
+  s3: {
+    backup: {
+      region?: string
+      endpoint?: string
+      bucket?: string
+      accessKeyId?: string
+      secretAccessKey?: string
+    }
+  }
+}
+
 // 合并所有配置类型
-export interface AppConfigType extends AuthConfig, DatabaseConfig, AppConfig {}
+export interface AppConfigType extends AuthConfig, DatabaseConfig, AppConfig, S3Config {}
 
 type IsRecord<T> = T extends object
   ? T extends (...args: unknown[]) => unknown

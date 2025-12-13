@@ -1,6 +1,11 @@
 export default () => ({
   database: {
     uri: process.env.MONGO_URI,
+    backup: {
+      enable: process.env.DATABASE_BACKUP_ENABLE === 'true',
+      retention: parseInt(process.env.DATABASE_BACKUP_RETENTION ?? '0', 10) || 0,
+      uri: process.env.DATABASE_BACKUP_URI,
+    },
   },
   redis: {
     host: process.env.REDIS_HOST,

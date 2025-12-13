@@ -1,0 +1,3 @@
+export const S3_BACKUP_CLIENT = 'S3_BACKUP_CLIENT'
+
+export const BACKUP_STORAGE = 'BACKUP_STORAGE'

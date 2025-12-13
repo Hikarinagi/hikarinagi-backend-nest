@@ -43,6 +43,15 @@ export default () => ({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
   },
+  s3: {
+    backup: {
+      region: process.env.S3_BACKUP_REGION,
+      endpoint: process.env.S3_BACKUP_ENDPOINT,
+      bucket: process.env.S3_BACKUP_BUCKET,
+      accessKeyId: process.env.S3_BACKUP_ACCESS_KEY_ID,
+      secretAccessKey: process.env.S3_BACKUP_SECRET_ACCESS_KEY,
+    },
+  },
   version: {
     major: parseInt(process.env.VERSION_MAJOR || '2', 10),
     minor: parseInt(process.env.VERSION_MINOR || '0', 10),
