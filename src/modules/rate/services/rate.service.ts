@@ -132,8 +132,37 @@ export class RateService {
       isSpoiler: false,
     }
 
-    const totalRate = rates.reduce((acc, r) => acc + (r.rate || 0), 0)
-    const avgRate = total > 0 ? Number((totalRate / total).toFixed(1)) : 0
+    const [avgRateAgg, scoreDistributionAgg] = await Promise.all([
+      this.rateModel.aggregate([
+        { $match: filter },
+        { $group: { _id: null, avg: { $avg: '$rate' } } },
+      ]),
+      this.rateModel.aggregate([
+        { $match: filter },
+        { $group: { _id: '$rate', count: { $sum: 1 } } },
+      ]),
+    ])
+    const avgRate =
+      avgRateAgg && avgRateAgg.length > 0 && avgRateAgg[0].avg !== undefined
+        ? Number(avgRateAgg[0].avg.toFixed(1))
+        : 0
+
+    const scoreBuckets = [
+      { min: 9, max: 10, count: 0 },
+      { min: 7, max: 8, count: 0 },
+      { min: 5, max: 6, count: 0 },
+      { min: 3, max: 4, count: 0 },
+      { min: 1, max: 2, count: 0 },
+    ]
+    scoreDistributionAgg.forEach(entry => {
+      const rateVal = Number(entry._id)
+      if (Number.isNaN(rateVal)) return
+      const target = scoreBuckets.find(bucket => rateVal >= bucket.min && rateVal <= bucket.max)
+      if (target) {
+        target.count += entry.count ?? 0
+      }
+    })
+    const scoreDistribution = { total, buckets: scoreBuckets }
 
     if (query.userId) {
       const rateIds = rates.map(r => r._id)
@@ -215,6 +244,7 @@ export class RateService {
       list: ratesWithInteraction,
       myRate: myRateInfo,
       avgRate,
+      scoreDistribution,
       count,
       pagination: { page, totalPages, limit, total },
     }

@@ -115,6 +115,23 @@ export class RateController {
           avgTime: { type: 'number' },
         },
       },
+      scoreDistribution: {
+        type: 'object',
+        properties: {
+          total: { type: 'number' },
+          buckets: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                min: { type: 'number' },
+                max: { type: 'number' },
+                count: { type: 'number' },
+              },
+            },
+          },
+        },
+      },
       pagination: {
         type: 'object',
         properties: {
