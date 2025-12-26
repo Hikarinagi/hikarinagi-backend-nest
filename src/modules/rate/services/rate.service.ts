@@ -17,6 +17,8 @@ import { RateInteraction, RateInteractionDocument } from '../schemas/rate-intera
 import { GetAllRatesQueryDto } from '../dto/get-all-rates.dto'
 import { Article, ArticleDocument } from '../../content/schemas/article.schema'
 import { GetReviewsQueryDto } from '../dto/get-reviews.dto'
+import { User, UserDocument } from '../../user/schemas/user.schema'
+import { UserStatus } from '../../user/enums/UserStatus.enum'
 
 @Injectable()
 export class RateService {
@@ -25,11 +27,20 @@ export class RateService {
     @InjectModel(RateInteraction.name)
     private readonly rateInteractionModel: Model<RateInteractionDocument>,
     @InjectModel(Article.name) private readonly articleModel: Model<ArticleDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
   async createRate(body: CreateRateDto, req: RequestWithUser): Promise<Rate> {
     if (body.rate < 1 || body.rate > 10) {
       throw new BadRequestException('the rate must be between 1 and 10')
+    }
+
+    const user = await this.userModel.findById(req.user._id).select('status')
+    if (!user) {
+      throw new NotFoundException('user not found')
+    }
+    if (user.status === UserStatus.BANNED) {
+      throw new ForbiddenException('you are banned from creating rates')
     }
 
     const existingRate = await this.rateModel.findOne({
