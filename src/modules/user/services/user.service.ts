@@ -46,10 +46,20 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private userCheckInService: UserCheckInService,
   ) {}
+
+  private assertEmailDomainAllowed(email: string) {
+    const forbiddenDomains = ['mailxw.com']
+    const domain = email.split('@')[1]?.toLowerCase()
+    if (domain && forbiddenDomains.includes(domain)) {
+      throw new ForbiddenException('该邮箱域名暂不支持注册')
+    }
+  }
+
   async sendVerificationEmailForSignUp(verificationForSignupDto: VerificationForSignupDto) {
     if (!this.configService.get('allowRegister')) {
       throw new ForbiddenException('注册已关闭')
     }
+    this.assertEmailDomainAllowed(verificationForSignupDto.email)
 
     const existingName = await this.userModel.findOne({
       name: verificationForSignupDto.name,
@@ -126,6 +136,7 @@ export class UserService {
     if (!this.configService.get('allowRegister')) {
       throw new ForbiddenException('注册已关闭')
     }
+    this.assertEmailDomainAllowed(createUserDto.email)
 
     const existingName = await this.userModel.findOne({
       name: createUserDto.name,
