@@ -93,6 +93,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.30.1",
+    "@jest/test-sequencer": "^29.7.0",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/schematics": "^11.0.5",
     "@nestjs/testing": "^11.1.3",
@@ -132,6 +133,7 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "testSequencer": "<rootDir>/test-sequencer.ts",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

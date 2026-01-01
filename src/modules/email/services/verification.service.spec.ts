@@ -72,9 +72,25 @@ describe('VerificationService', () => {
       )
     })
 
-    it('should throw BadRequestException for email mismatch', async () => {
+    it('should allow password reset without email match check', async () => {
       const email = 'test@example.com'
-      const type = 'password-reset' // 使用不是 'register' 和 'email-change' 的类型
+      const type = 'password-reset'
+      const req = {
+        user: { email: 'different@example.com' },
+      }
+
+      mockEmailService.sendVerificationCode.mockResolvedValueOnce(true)
+      mockCacheManager.set.mockResolvedValueOnce(undefined)
+
+      const result = await service.requestVerificationCode(email, type, req as any)
+
+      expect(result.success).toBe(true)
+      expect(result.uuid).toBeDefined()
+    })
+
+    it('should throw BadRequestException for unsupported type with email mismatch', async () => {
+      const email = 'test@example.com'
+      const type = 'unknown-type'
       const req = {
         user: { email: 'different@example.com' },
       }

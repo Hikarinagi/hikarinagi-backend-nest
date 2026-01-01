@@ -73,11 +73,16 @@ describe('EmailService', () => {
         'https://api.elasticemail.com/v2/email/send',
         null,
         {
+          family: 4,
           params: expect.objectContaining({
             apikey: 'test-api-key',
             subject: 'Test Subject',
             to: 'test@example.com',
             bodyHtml: '<p>Test content</p>',
+            from: 'noreply@hikarinagi.com',
+            fromName: 'Hikarinagi',
+            senderName: 'Hikarinagi',
+            isTransactional: true,
           }),
         },
       )
@@ -108,8 +113,12 @@ describe('EmailService', () => {
       await service.sendEmail(sendEmailDto)
 
       expect(mockedAxios.post).toHaveBeenCalledWith(expect.any(String), null, {
+        family: 4,
         params: expect.objectContaining({
           from: 'custom@example.com',
+          fromName: 'Hikarinagi',
+          senderName: 'Hikarinagi',
+          isTransactional: true,
         }),
       })
     })
@@ -126,10 +135,15 @@ describe('EmailService', () => {
 
       expect(result).toBe(true)
       expect(mockedAxios.post).toHaveBeenCalledWith(expect.any(String), null, {
+        family: 4,
         params: expect.objectContaining({
           to: email,
           subject: 'Hikarinagi Verification Code',
           bodyHtml: expect.stringContaining(code),
+          from: 'noreply@hikarinagi.com',
+          fromName: 'Hikarinagi',
+          senderName: 'Hikarinagi',
+          isTransactional: true,
         }),
       })
     })
