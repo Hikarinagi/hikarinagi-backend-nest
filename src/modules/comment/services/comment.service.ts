@@ -1,12 +1,27 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
-import { Comment, CommentDocument } from '../schemas/comment.schema'
+import { Comment, CommentDocument, CommentStatus } from '../schemas/comment.schema'
 import {
   CommentInteraction,
   CommentInteractionDocument,
 } from '../schemas/comment-interaction.schema'
 import { GetCommentListQueryDto } from '../dto/get-comment-list.dto'
+import { CreateCommentDto } from '../dto/create-comment.dto'
+import { InjectQueue } from '@nestjs/bullmq'
+import { Queue } from 'bullmq'
+import {
+  MODERATION_QUEUE,
+  OMNI_MODERATION_JOB,
+} from '../../moderate/constants/moderation.constants'
+import { RequestWithUser } from '../../auth/interfaces/request-with-user.interface'
+import { User, UserDocument } from '../../user/schemas/user.schema'
+import { UserStatus } from '../../user/enums/UserStatus.enum'
 
 @Injectable()
 export class CommentService {
@@ -14,6 +29,8 @@ export class CommentService {
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     @InjectModel(CommentInteraction.name)
     private interactionModel: Model<CommentInteractionDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectQueue(MODERATION_QUEUE) private readonly moderationQueue: Queue,
   ) {}
 
   async pinComment(id: string): Promise<Comment> {
@@ -32,16 +49,27 @@ export class CommentService {
     return comment
   }
 
-  async getCommentList(query: GetCommentListQueryDto) {
+  async getCommentList(query: GetCommentListQueryDto, currentUserId?: string) {
     const { from, fromId, page, limit, userId, sort = 'hot', parentId } = query
 
     const skip = (page - 1) * limit
+    const visibleStatuses: any[] = [
+      { status: CommentStatus.APPROVED },
+      { status: { $exists: false } },
+    ]
+    if (currentUserId) {
+      visibleStatuses.push({
+        status: CommentStatus.PENDING,
+        userId: new Types.ObjectId(String(currentUserId)),
+      })
+    }
 
     const filter: any = {
       from,
       fromId: new Types.ObjectId(String(fromId)),
       isDeleted: false,
       parentId: parentId ? new Types.ObjectId(String(parentId)) : null,
+      $or: visibleStatuses,
     }
 
     const sortOption =
@@ -77,7 +105,11 @@ export class CommentService {
 
       const repliedComments = replyToIds.length
         ? await this.commentModel
-            .find({ _id: { $in: replyToIds }, isDeleted: false })
+            .find({
+              _id: { $in: replyToIds },
+              isDeleted: false,
+              $or: visibleStatuses,
+            })
             .populate({ path: 'userId', select: 'userId name avatar' })
             .lean()
         : []
@@ -130,6 +162,7 @@ export class CommentService {
               fromId: new Types.ObjectId(String(fromId)),
               parentId: { $in: parentIds },
               isDeleted: false,
+              $or: visibleStatuses,
             })
             .select('-__v')
             .populate({ path: 'userId', select: 'userId name avatar' })
@@ -223,6 +256,7 @@ export class CommentService {
       fromId: new Types.ObjectId(String(fromId)),
       isDeleted: false,
       parentId: parentId ? new Types.ObjectId(String(parentId)) : null,
+      $or: visibleStatuses,
     })
 
     return {
@@ -235,5 +269,50 @@ export class CommentService {
         currentPage: page,
       },
     }
+  }
+
+  async addComment(dto: CreateCommentDto, req: RequestWithUser): Promise<Comment> {
+    const userId = req.user?._id
+    if (!userId) {
+      throw new BadRequestException('user not logged in')
+    }
+
+    const user = await this.userModel.findById(userId).select('status')
+    if (!user) {
+      throw new NotFoundException('user not found')
+    }
+    if (user.status === UserStatus.BANNED) {
+      throw new ForbiddenException('you have been banned from commenting')
+    }
+
+    const created = await this.commentModel.create({
+      userId: new Types.ObjectId(String(user._id)),
+      content: dto.content,
+      from: dto.from,
+      fromId: new Types.ObjectId(String(dto.fromId)),
+      parentId: dto.parentId ? new Types.ObjectId(String(dto.parentId)) : null,
+      replyToCommentId: dto.replyToCommentId
+        ? new Types.ObjectId(String(dto.replyToCommentId))
+        : null,
+      status: CommentStatus.PENDING,
+      isDeleted: false,
+    })
+
+    await this.requestModeration(created._id.toString())
+
+    return created
+  }
+
+  async requestModeration(commentId: string) {
+    const objectId = new Types.ObjectId(String(commentId))
+    const comment = await this.commentModel.findById(objectId)
+    if (!comment) {
+      throw new NotFoundException('评论不存在')
+    }
+    await this.commentModel.findByIdAndUpdate(objectId, {
+      status: CommentStatus.PENDING,
+      isDeleted: false,
+    })
+    await this.moderationQueue.add(OMNI_MODERATION_JOB, { commentId: objectId.toString() })
   }
 }

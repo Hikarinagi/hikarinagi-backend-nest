@@ -1,6 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
 
+export enum CommentStatus {
+  APPROVED = 1,
+  PENDING = 2,
+  BLOCKED = 3,
+}
+
 export type CommentDocument = Comment & Document
 
 @Schema({
@@ -68,6 +74,14 @@ export class Comment {
     index: true,
   })
   isDeleted: boolean
+
+  @Prop({
+    type: Number,
+    enum: CommentStatus,
+    default: CommentStatus.APPROVED,
+    index: true,
+  })
+  status: CommentStatus
 
   @Prop({
     type: Boolean,

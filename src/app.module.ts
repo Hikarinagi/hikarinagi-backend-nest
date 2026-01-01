@@ -32,6 +32,8 @@ import { SitemapModule } from './modules/sitemap/sitemap.module'
 import { IndexNowModule } from './modules/indexnow/index-now.module'
 import { RateModule } from './modules/rate/rate.module'
 import { DatabaseModule } from './modules/database/database.module'
+import { LLMsModule } from './modules/llms/llms.module'
+import { ModerateModule } from './modules/moderate/moderate.module'
 
 @Module({
   imports: [
@@ -126,6 +128,8 @@ import { DatabaseModule } from './modules/database/database.module'
     IndexNowModule,
     RateModule,
     DatabaseModule,
+    LLMsModule,
+    ModerateModule,
   ],
   controllers: [],
   providers: [

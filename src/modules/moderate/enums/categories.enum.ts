@@ -1,0 +1,31 @@
+export enum ModerateCategory {
+  HARASSMENT = 'harassment',
+  HARASSMENT_THREATENING = 'harassment/threatening',
+  SEXUAL = 'sexual',
+  HATE = 'hate',
+  HATE_THREATENING = 'hate/threatening',
+  ILLICIT = 'illicit',
+  ILLICIT_VIOLENT = 'illicit/violent',
+  SELF_HARM_INTENT = 'self-harm/intent',
+  SELF_HARM_INSTRUCTIONS = 'self-harm/instructions',
+  SELF_HARM = 'self-harm',
+  SEXUAL_MINORS = 'sexual/minors',
+  VIOLENCE = 'violence',
+  VIOLENCE_GRAPHIC = 'violence/graphic',
+}
+
+export enum ModerateCategoryKey {
+  HARASSMENT = 'HARASSMENT',
+  HARASSMENT_THREATENING = 'HARASSMENT_THREATENING',
+  SEXUAL = 'SEXUAL',
+  SEXUAL_MINORS = 'SEXUAL_MINORS',
+  HATE = 'HATE',
+  HATE_THREATENING = 'HATE_THREATENING',
+  ILLICIT = 'ILLICIT',
+  ILLICIT_VIOLENT = 'ILLICIT_VIOLENT',
+  SELF_HARM = 'SELF_HARM',
+  SELF_HARM_INTENT = 'SELF_HARM_INTENT',
+  SELF_HARM_INSTRUCTIONS = 'SELF_HARM_INSTRUCTIONS',
+  VIOLENCE = 'VIOLENCE',
+  VIOLENCE_GRAPHIC = 'VIOLENCE_GRAPHIC',
+}

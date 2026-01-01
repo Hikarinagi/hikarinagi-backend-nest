@@ -72,6 +72,13 @@ export interface AppConfig {
   }
 }
 
+export interface LLMsConfig {
+  openai: {
+    apiKey: string
+    baseURL: string
+  }
+}
+
 export interface S3Config {
   s3: {
     backup: {
@@ -85,7 +92,12 @@ export interface S3Config {
 }
 
 // 合并所有配置类型
-export interface AppConfigType extends AuthConfig, DatabaseConfig, AppConfig, S3Config {}
+export interface AppConfigType
+  extends AuthConfig,
+    DatabaseConfig,
+    AppConfig,
+    S3Config,
+    LLMsConfig {}
 
 type IsRecord<T> = T extends object
   ? T extends (...args: unknown[]) => unknown

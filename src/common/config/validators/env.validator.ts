@@ -36,6 +36,19 @@ export class EnvironmentValidator {
       defaultValue: true,
     },
     { key: 'PORT', required: false, type: 'number', description: '应用端口', defaultValue: 3005 },
+    {
+      key: 'OPENAI_API_KEY',
+      required: false,
+      type: 'string',
+      description: 'OpenAI API 密钥',
+    },
+    {
+      key: 'OPENAI_BASE_URL',
+      required: false,
+      type: 'string',
+      description: 'OpenAI 请求地址',
+      defaultValue: 'https://api.openai.com/v1',
+    },
 
     // database
     { key: 'MONGO_URI', required: true, type: 'string', description: 'MongoDB 连接字符串' },
