@@ -15,7 +15,11 @@ import { Comment, CommentDocument, CommentStatus } from '../../comment/schemas/c
 import { Model, Types } from 'mongoose'
 import { ModerationEvent, ModerationEventDocument } from '../schemas/moderation-event.schema'
 import { ModerationDecision } from '../enums/decisions.enum'
-import { ModerateCategory, ModerateCategoryKey } from '../enums/categories.enum'
+import {
+  ModerateCategory,
+  ModerateCategoryKey,
+  ModerateCategoryLabel,
+} from '../enums/categories.enum'
 import type { Moderation } from 'openai/resources/moderations'
 import { z } from 'zod'
 import { zodTextFormat } from 'openai/helpers/zod'
@@ -257,13 +261,13 @@ export class ModerationProcessor extends WorkerHost {
     evidence?: string,
   ) {
     try {
+      const categoryLabel = ModerateCategoryLabel[topCategory] ?? topCategory
+
       await this.systemMessageService.sendSystemMessage({
         targetUser,
         type: DtoSystemMessageType.SYSTEM,
         title: '评论审核未通过',
-        content:
-          reason ||
-          `评论被判定存在违规内容（${topCategory}）${evidence ? `，依据：${evidence}` : ''}`,
+        content: `评论被判定存在违规内容（${categoryLabel}）${evidence ? `，依据：${evidence}` : ''}`,
       })
     } catch (error) {
       this.logger.error('发送系统消息失败', error)

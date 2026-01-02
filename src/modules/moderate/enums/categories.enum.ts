@@ -29,3 +29,19 @@ export enum ModerateCategoryKey {
   VIOLENCE = 'VIOLENCE',
   VIOLENCE_GRAPHIC = 'VIOLENCE_GRAPHIC',
 }
+
+export enum ModerateCategoryLabel {
+  HARASSMENT = '骚扰或辱骂',
+  HARASSMENT_THREATENING = '威胁性骚扰',
+  SEXUAL = '色情或成人内容',
+  SEXUAL_MINORS = '涉未成年人色情',
+  HATE = '仇恨言论',
+  HATE_THREATENING = '威胁性仇恨',
+  ILLICIT = '违法违规',
+  ILLICIT_VIOLENT = '暴力违法',
+  SELF_HARM = '自伤风险',
+  SELF_HARM_INTENT = '自杀意图',
+  SELF_HARM_INSTRUCTIONS = '自杀教唆',
+  VIOLENCE = '暴力内容',
+  VIOLENCE_GRAPHIC = '血腥暴力',
+}
