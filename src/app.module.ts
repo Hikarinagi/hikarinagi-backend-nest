@@ -16,6 +16,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { EmailModule } from './modules/email/email.module'
 import { MessageModule } from './modules/message/message.module'
 import { SharedModule } from './modules/shared/shared.module'
+import { ContentModule } from './modules/content/content.module'
 import { EntitiesModule } from './modules/entities/entities.module'
 import { BangumiModule } from './modules/bangumi/bangumi.module'
 import { GalgameModule } from './modules/galgame/galgame.module'
@@ -109,6 +110,7 @@ import { ModerateModule } from './modules/moderate/moderate.module'
 
     // 共享模块
     SharedModule,
+    ContentModule,
     EntitiesModule,
     BangumiModule,
 
