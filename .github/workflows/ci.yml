@@ -195,7 +195,7 @@ jobs:
           path: dist/
 
       - name: Deploy to production server
-        uses: appleboy/ssh-action@v1.2.2
+        uses: appleboy/ssh-action@v1.2.3
         with:
           host: ${{ secrets.PRODUCTION_HOST }}
           username: ${{ secrets.PRODUCTION_USER }}
