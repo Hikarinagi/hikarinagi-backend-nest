@@ -133,8 +133,12 @@ export class GalgameController {
   @Get('bangumi/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(HikariUserGroup.CREATOR)
-  async fetchBangumiData(@Param('id') id: string) {
-    const bangumiData = await this.galgameService.fetchGameDataFromBangumi(id)
+  async fetchBangumiData(
+    @Param('id') id: string,
+    @Query('skipPlatformCheck') skipPlatformCheck?: string,
+  ) {
+    const skipCheck = skipPlatformCheck === 'true'
+    const bangumiData = await this.galgameService.fetchGameDataFromBangumi(id, skipCheck)
     return {
       data: bangumiData,
     }

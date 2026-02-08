@@ -933,7 +933,7 @@ export class GalgameService {
     }
   }
 
-  async fetchGameDataFromBangumi(id: number | string) {
+  async fetchGameDataFromBangumi(id: number | string, skipPlatformCheck = false) {
     const token = await this.bangumiAuthService.getValidAccessToken()
     if (!token) {
       throw new BadRequestException('Failed to get Bangumi token')
@@ -978,7 +978,7 @@ export class GalgameService {
       }
     }
 
-    if (subjectInfo.data?.platform !== '游戏') {
+    if (!skipPlatformCheck && subjectInfo.data?.platform !== '游戏') {
       throw new BadRequestException('The specified subject_id is not a game')
     }
 
