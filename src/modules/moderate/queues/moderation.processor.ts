@@ -155,6 +155,7 @@ export class ModerationProcessor extends WorkerHost {
         role: 'system' as const,
         content: `You are a content moderation system for a game review platform. Analyze the given comment in context and return a moderation decision.
                   Context matters: Gaming slang, hyperbolic expressions (e.g., "I'm dying" meaning frustration), and game-related discussions are generally acceptable.
+                  Anime/manga fandom terms: words like "萝莉" (loli) used purely to express that a character is cute or likeable (e.g., "萝莉真可爱") are acceptable as normal fandom expressions; only flag them when combined with explicit sexual content or real-world harmful intent.
                   Available categories (use these exact values for top_category and as keys in categories_json):
                   ${categories.map(c => `- ${c}`).join('\n')}
                   For categories_json, set each category to true if the content violates that category, false otherwise.
