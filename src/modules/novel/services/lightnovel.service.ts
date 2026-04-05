@@ -1,5 +1,8 @@
 import { Model } from 'mongoose'
+import { GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { LightNovel, LightNovelDocument } from '../schemas/light-novel.schema'
+import { LightNovelVolume, LightNovelVolumeDocument } from '../schemas/light-novel-volume.schema'
 import { EditHistoryService } from '../../../common/services/edit-history.service'
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
@@ -19,11 +22,16 @@ import { SystemMessageType } from '../../message/dto/send-system-message.dto'
 import { SystemMessageService } from '../../message/services/system-message.service'
 import { User, UserDocument } from '../../user/schemas/user.schema'
 import { HikariUserGroup } from '../../auth/enums/hikari-user-group.enum'
+import { HikariConfigService } from '../../../common/config/services/config.service'
 
 @Injectable()
 export class LightNovelService {
+  private readonly s3Client: S3Client
+
   constructor(
     @InjectModel(LightNovel.name) private lightNovelModel: Model<LightNovelDocument>,
+    @InjectModel(LightNovelVolume.name)
+    private lightNovelVolumeModel: Model<LightNovelVolumeDocument>,
     private readonly editHistoryService: EditHistoryService,
     @InjectConnection() private readonly connection: Connection,
     private readonly counterService: CounterService,
@@ -33,7 +41,17 @@ export class LightNovelService {
     @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
     private readonly systemMessageService: SystemMessageService,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+    private readonly configService: HikariConfigService,
+  ) {
+    this.s3Client = new S3Client({
+      region: 'auto',
+      endpoint: this.configService.get('r2.r2Endpoint'),
+      credentials: {
+        accessKeyId: this.configService.get('r2.novel.r2LightNovelAccessKey'),
+        secretAccessKey: this.configService.get('r2.novel.r2LightNovelSecretKey'),
+      },
+    })
+  }
 
   async findById(id: string, req: RequestWithUser, preview: boolean = false) {
     if (isNaN(Number(id))) {
@@ -872,6 +890,138 @@ export class LightNovelService {
       throw error
     } finally {
       session.endSession()
+    }
+  }
+
+  private buildVolumeArchiveFileName(
+    volumeNumber: number | undefined,
+    volumeType: string | undefined,
+    volumeExtraName: string | undefined,
+    title: string,
+  ): string {
+    const normalizedTitle = this.sanitizeFileName(title)
+    const rawExtraName = (volumeExtraName ?? '').trim()
+    const normalizedExtraName = rawExtraName ? this.sanitizeFileName(rawExtraName) : ''
+    if (volumeType === 'extra') {
+      const extraPrefix = normalizedExtraName ? `特典-${normalizedExtraName}` : '特典'
+      return `${extraPrefix}-${normalizedTitle}.epub`
+    }
+
+    if (typeof volumeNumber === 'number') {
+      const padded = volumeNumber.toString().padStart(2, '0')
+      return `第${padded}卷-${normalizedTitle}.epub`
+    }
+
+    return `${normalizedTitle}.epub`
+  }
+
+  private buildUniqueFileName(counter: Map<string, number>, baseName: string): string {
+    const current = counter.get(baseName) || 0
+    if (current === 0) {
+      counter.set(baseName, 1)
+      return baseName
+    }
+
+    counter.set(baseName, current + 1)
+    const extensionIndex = baseName.lastIndexOf('.')
+    if (extensionIndex === -1) {
+      return `${baseName} (${current + 1})`
+    }
+    const name = baseName.slice(0, extensionIndex)
+    const ext = baseName.slice(extensionIndex)
+    return `${name} (${current + 1})${ext}`
+  }
+
+  private sanitizeFileName(input: string): string {
+    const sanitized = input.replace(/[\\/:*?"<>|]/g, '-').trim()
+    return sanitized || 'untitled'
+  }
+
+  async getSeriesDownloadUrls(novelId: number, req: RequestWithUser) {
+    const novelQuery: any = {
+      novelId,
+      status: 'published',
+    }
+    if ([HikariUserGroup.ADMIN, HikariUserGroup.SUPER_ADMIN].includes(req.user?.hikariUserGroup)) {
+      delete novelQuery.status
+    }
+
+    const novel = await this.lightNovelModel.findOne(novelQuery).lean()
+    if (!novel) {
+      throw new NotFoundException('Light novel series not found')
+    }
+
+    const volumeQuery: any = {
+      seriesId: novel._id,
+      hasEpub: true,
+      status: 'published',
+    }
+    if ([HikariUserGroup.ADMIN, HikariUserGroup.SUPER_ADMIN].includes(req.user?.hikariUserGroup)) {
+      delete volumeQuery.status
+    }
+
+    const volumes = await this.lightNovelVolumeModel
+      .find(volumeQuery)
+      .select('volumeId volumeNumber volumeType volumeExtraName name name_cn publicationDate')
+      .sort({ publicationDate: 1, volumeNumber: 1, volumeId: 1 })
+      .lean()
+
+    if (volumes.length === 0) {
+      throw new NotFoundException('No downloadable volumes for this series')
+    }
+
+    const seriesName = novel.name_cn || novel.name || `novel-${novelId}`
+    const bucket = this.configService.get('r2.novel.r2LightNovelBucket')
+    const fileNameCounter = new Map<string, number>()
+
+    const downloadItems = await Promise.all(
+      volumes.map(async volume => {
+        const filePath = `${novelId}/${volume.volumeId}/${volume.volumeId}.epub`
+        const fileName = this.buildVolumeArchiveFileName(
+          volume.volumeNumber,
+          volume.volumeType,
+          volume.volumeExtraName,
+          volume.name_cn || volume.name || `volume-${volume.volumeId}`,
+        )
+
+        const [signedUrl, headResult] = await Promise.all([
+          getSignedUrl(
+            this.s3Client,
+            new GetObjectCommand({
+              Bucket: bucket,
+              Key: filePath,
+              ResponseContentDisposition: `attachment; filename="${encodeURIComponent(fileName)}"`,
+            }),
+            { expiresIn: 600 },
+          ),
+          this.s3Client
+            .send(new HeadObjectCommand({ Bucket: bucket, Key: filePath }))
+            .catch(() => null),
+        ])
+
+        return {
+          volumeId: volume.volumeId,
+          fileName: this.buildUniqueFileName(fileNameCounter, fileName),
+          url: signedUrl,
+          size: headResult?.ContentLength ?? null,
+        }
+      }),
+    )
+
+    await this.lightNovelVolumeModel.updateMany(
+      { volumeId: { $in: volumes.map(v => v.volumeId) } },
+      { $inc: { downloadTimes: 1 } },
+      { timestamps: false },
+    )
+    await this.lightNovelModel.findOneAndUpdate(
+      { novelId },
+      { $inc: { downloadTimes: volumes.length } },
+      { timestamps: false },
+    )
+
+    return {
+      seriesName,
+      volumes: downloadItems,
     }
   }
 

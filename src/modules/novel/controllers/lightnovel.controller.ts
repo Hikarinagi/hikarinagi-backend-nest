@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Post, Inject, Param, Query, Req, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
 import { LightNovelService } from '../services/lightnovel.service'
 import { GetLightNovelListDto } from '../dto/get-lightnovel-list.dto'
 import { RequestWithUser } from '../../../modules/auth/interfaces/request-with-user.interface'
@@ -46,6 +57,40 @@ export class LightNovelController {
     const lightNovel = await this.lightNovelService.getRandomLightNovel(req)
     return {
       data: lightNovel,
+    }
+  }
+
+  @Get('download-series/:novelId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '获取整个系列所有分卷的预签名下载链接' })
+  @ApiOkResponseStandard(
+    {
+      type: 'object',
+      properties: {
+        seriesName: { type: 'string' },
+        volumes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              volumeId: { type: 'number' },
+              fileName: { type: 'string' },
+              url: { type: 'string' },
+              size: { type: 'number', nullable: true },
+            },
+          },
+        },
+      },
+    },
+    { description: '返回各分卷的预签名直链下载地址' },
+  )
+  async getSeriesDownloadUrls(
+    @Param('novelId', ParseIntPipe) novelId: number,
+    @Req() req: RequestWithUser,
+  ) {
+    const result = await this.lightNovelService.getSeriesDownloadUrls(novelId, req)
+    return {
+      data: result,
     }
   }
 
